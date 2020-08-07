@@ -12,6 +12,8 @@
 //      - The count of each piece that you have seen
 //  - There seems to be a delay at lower levels to get the next piece generated.
 //    I would like that to be quicker
+// - Add instructions somewhere
+// - Add a way to specify the starting level
 
 
 type PieceLocations = [
