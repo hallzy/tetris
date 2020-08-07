@@ -4,7 +4,7 @@
 
 .board {
     border: 5px solid red;
-    width: calc(88vh / 2);
+    width: 44vh;
     height: 88vh;
     display: table;
     margin: auto;

@@ -14,6 +14,9 @@
 //    I would like that to be quicker
 // - Add instructions somewhere
 // - Add a way to specify the starting level
+// - Mobile swipe/touch support
+// - Have a way to create unique games that can be replayed with the same
+// sequence of pieces and keep track of scores on that particular game
 
 
 type PieceLocations = [
