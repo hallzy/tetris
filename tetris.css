@@ -1,0 +1,45 @@
+.heading {
+    text-align: center;
+}
+
+.board {
+    border: 5px solid red;
+    width: calc(88vh / 2);
+    height: 88vh;
+    display: table;
+    margin: auto;
+}
+
+.row {
+    display: table-row;
+}
+
+.cell {
+    border: 1px solid grey;
+    display: table-cell;
+}
+
+.cell.red {
+    background-color: blue;
+}
+
+.hidden {
+    display: none;
+}
+
+.pause_banner {
+    position: absolute;
+    font-size: 10vh;
+    font-weight: bold;
+    width: 100%;
+    text-align: center;
+    top: 25vh;
+}
+
+.heading h1, .heading h2 {
+    margin: 0;
+}
+
+.heading span {
+    margin-right: 30px;
+}
