@@ -1,3 +1,4 @@
+/// <reference path="./polyfill.ts" />
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
@@ -109,7 +110,6 @@ var Piece = /** @class */ (function () {
     };
     Piece.prototype.moveLeft = function () {
         // Make sure we have room to move left
-        // TODO: Also need to add collision detection for existing spaces
         for (var i in this.cells) {
             var cell = this.cells[i];
             if (this.collisionDetect(cell.row, cell.col - 1)) {
@@ -125,7 +125,6 @@ var Piece = /** @class */ (function () {
     };
     Piece.prototype.moveRight = function () {
         // Make sure we have room to move right
-        // TODO: Also need to add collision detection for existing spaces
         for (var i in this.cells) {
             var cell = this.cells[i];
             if (this.collisionDetect(cell.row, cell.col + 1)) {
@@ -141,7 +140,6 @@ var Piece = /** @class */ (function () {
     };
     Piece.prototype.moveDown = function () {
         // Make sure we have room to move down
-        // TODO: Also need to add collision detection for existing spaces
         for (var i in this.cells) {
             var cell = this.cells[i];
             if (this.collisionDetect(cell.row - 1, cell.col)) {
@@ -483,6 +481,7 @@ var Game = /** @class */ (function () {
             this.updateLines(completedRows.length);
             this.updateLevel();
         }
+        alert('updated score, lines, and level');
         // We have now removed all complete lines now. Insert the number of
         // removed lines to the top now. And add the c1 to c10 classes to each
         // column
@@ -492,8 +491,15 @@ var Game = /** @class */ (function () {
             if (!(board instanceof HTMLElement)) {
                 throw new Error("Couldn't find Board");
             }
+            alert('before insertbefore');
+            // TODO: iOS fails on this line... Whether it is the call to
+            // insertBefore, or something inside htmlToElement, I don't know...
+            // It gets past all the lines in htmlToElement except for the return
+            // statement
             var newRow = board.insertBefore(htmlToElement(rowHTML), board.children[0]);
+            alert('done inserting');
         }
+        alert('Inserted rows');
         // Now go back through all the rows and update the r1 to r20 classes.
         var count = 1;
         var rows = document.getElementsByClassName('row');
@@ -525,12 +531,21 @@ var Game = /** @class */ (function () {
         this.activePiece = this.Pieces[random]();
     };
     Game.moveLeft = function () {
+        if (Game.isPaused) {
+            return;
+        }
         this.activePiece.moveLeft();
     };
     Game.moveRight = function () {
+        if (Game.isPaused) {
+            return;
+        }
         this.activePiece.moveRight();
     };
     Game.moveDown = function () {
+        if (Game.isPaused) {
+            return;
+        }
         if (!this.activePiece.moveDown()) {
             this.timer.pause();
             this.generatePiece();
@@ -538,15 +553,24 @@ var Game = /** @class */ (function () {
         }
     };
     Game.drop = function () {
+        if (Game.isPaused) {
+            return;
+        }
         this.timer.pause();
         while (this.activePiece.moveDown())
             ;
         this.advance();
     };
     Game.rotateCCW = function () {
+        if (Game.isPaused) {
+            return;
+        }
         this.activePiece.rotate270();
     };
     Game.rotateCW = function () {
+        if (Game.isPaused) {
+            return;
+        }
         this.activePiece.rotate90();
     };
     Game.togglePause = function () {
@@ -649,17 +673,15 @@ var Game = /** @class */ (function () {
 }());
 function setupUserKeys() {
     document.onkeydown = checkKey;
+    setupMobileTouchSupport();
     function checkKey(e) {
         e = e || window.event;
         if (e.keyCode == '13') {
             Game.togglePause();
             return;
+            // down arrow
         }
-        if (Game.isPaused) {
-            return;
-        }
-        // down arrow
-        if (e.keyCode == '40') {
+        else if (e.keyCode == '40') {
             Game.moveDown();
             // left arrow
         }
@@ -688,17 +710,91 @@ function setupUserKeys() {
         }
     }
 }
+function setupMobileTouchSupport() {
+    console.log('hello');
+    var startX;
+    var startY;
+    var xDist;
+    var yDist;
+    // required min distance travelled to be considered swipe
+    var distanceThreshold = 50;
+    // Screen must be touched for 50ms to be registered, otherwise it is
+    // ignored
+    var requiredTime = 50;
+    var maxTime = 1000;
+    var elapsedTime;
+    var startTime = 0;
+    var board = document.getElementsByClassName('board')[0];
+    if (!(board instanceof HTMLElement)) {
+        throw new Error("Couldn't find Board");
+    }
+    board.addEventListener('touchstart', function (e) {
+        // Get the touched object
+        var touchobj = e.changedTouches[0];
+        // Distance is set to 0
+        xDist = 0;
+        yDist = 0;
+        // Find the starting point of the touches
+        startX = touchobj.pageX;
+        startY = touchobj.pageY;
+        // record time when finger first makes contact with surface
+        startTime = new Date().getTime();
+        e.preventDefault();
+    }, false);
+    board.addEventListener('touchmove', function (e) {
+        // prevent scrolling when inside DIV
+        e.preventDefault();
+    }, false);
+    board.addEventListener('touchend', function (e) {
+        // Get the touched object
+        var touchobj = e.changedTouches[0];
+        // get total dist travelled by finger while in contact with surface
+        xDist = touchobj.pageX - startX;
+        yDist = touchobj.pageY - startY;
+        // get time elapsed
+        elapsedTime = new Date().getTime() - startTime;
+        if (elapsedTime < requiredTime || elapsedTime > maxTime) {
+            e.preventDefault();
+            return;
+        }
+        if (Math.abs(xDist) < distanceThreshold && Math.abs(yDist) < distanceThreshold) {
+            // Screen tap
+            if (elapsedTime > 300) {
+                // msg = "Screen Tap and Hold";
+            }
+            else {
+                Game.rotateCW();
+            }
+        }
+        else if (Math.abs(xDist) > Math.abs(yDist)) {
+            xDist < 0 ? Game.moveLeft() : Game.moveRight();
+        }
+        else {
+            yDist < 0 ? Game.togglePause() : Game.drop();
+        }
+        e.preventDefault();
+    }, false);
+}
 function htmlToElement(html) {
+    alert('start htmltoelement');
     var template = document.createElement('template');
+    alert('created element');
     // Never return a text node of whitespace as the result
     html = html.trim();
+    alert('trimmed');
     template.innerHTML = html;
+    alert('set html');
     return template.content.firstChild;
 }
 function unique(list) {
     return list.filter(function (val, idx, self) { return self.indexOf(val) === idx; });
 }
 window.onload = function () {
+    alert('HELLO 1');
+    addPolyFill();
+    if (!Array.from) {
+        alert('Array.from is not present. The polyfill did not work');
+    }
     setupUserKeys();
     Game.start(6);
 };

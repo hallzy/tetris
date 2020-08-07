@@ -1,3 +1,5 @@
+/// <reference path="./polyfill.ts" />
+
 // TODO:
 //  - See if I can reduce the delay when holding down the arrow keys
 //  - Rotating pieces at the top of the board doesn't work, probably due to
@@ -14,10 +16,11 @@
 //    I would like that to be quicker
 // - Add instructions somewhere
 // - Add a way to specify the starting level
-// - Mobile swipe/touch support
+// - Better Mobile swipe/touch support
+//   - Maybe use the touchmove event to have the piece track the users finger
+//   instead of having swipes
 // - Have a way to create unique games that can be replayed with the same
 // sequence of pieces and keep track of scores on that particular game
-
 
 type PieceLocations = [
     { 'row' : number, 'col' : number},
@@ -584,7 +587,6 @@ class Game {
             if (!(row instanceof HTMLElement)) {
                 throw new Error("Couldn't find Row index " + i);
             }
-
             var numFilledCells = Array.from(row.children).filter(function(cell, j) {
                 if (!(cell instanceof HTMLElement)) {
                     throw new Error("Couldn't find column index " + j + " in row idx " + i);
@@ -604,6 +606,8 @@ class Game {
             this.updateLines(completedRows.length);
             this.updateLevel();
         }
+
+        alert('updated score, lines, and level')
 
         // We have now removed all complete lines now. Insert the number of
         // removed lines to the top now. And add the c1 to c10 classes to each
@@ -628,8 +632,16 @@ class Game {
                 throw new Error("Couldn't find Board");
             }
 
+            alert('before insertbefore');
+            // TODO: iOS fails on this line... Whether it is the call to
+            // insertBefore, or something inside htmlToElement, I don't know...
+            // It gets past all the lines in htmlToElement except for the return
+            // statement
             var newRow = board.insertBefore(htmlToElement(rowHTML), board.children[0]);
+            alert('done inserting')
         }
+
+        alert('Inserted rows')
 
         // Now go back through all the rows and update the r1 to r20 classes.
         var count = 1;
@@ -664,14 +676,23 @@ class Game {
     }
 
     public static moveLeft() {
+        if (Game.isPaused) {
+            return;
+        }
         this.activePiece.moveLeft();
     }
 
     public static moveRight() {
+        if (Game.isPaused) {
+            return;
+        }
         this.activePiece.moveRight();
     }
 
     public static moveDown() {
+        if (Game.isPaused) {
+            return;
+        }
         if (!this.activePiece.moveDown()) {
             this.timer.pause();
             this.generatePiece();
@@ -680,16 +701,25 @@ class Game {
     }
 
     public static drop() {
+        if (Game.isPaused) {
+            return;
+        }
         this.timer.pause();
         while (this.activePiece.moveDown());
         this.advance();
     }
 
     public static rotateCCW() {
+        if (Game.isPaused) {
+            return;
+        }
         this.activePiece.rotate270();
     }
 
     public static rotateCW() {
+        if (Game.isPaused) {
+            return;
+        }
         this.activePiece.rotate90();
     }
 
@@ -798,20 +828,16 @@ class Game {
 function setupUserKeys() {
     document.onkeydown = checkKey;
 
+    setupMobileTouchSupport();
+
     function checkKey(e) {
         e = e || window.event;
 
         if (e.keyCode == '13') {
             Game.togglePause();
             return;
-        }
-
-        if (Game.isPaused) {
-            return;
-        }
-
         // down arrow
-        if (e.keyCode == '40') {
+        } else if (e.keyCode == '40') {
             Game.moveDown();
         // left arrow
         } else if (e.keyCode == '37') {
@@ -835,11 +861,94 @@ function setupUserKeys() {
     }
 }
 
+function setupMobileTouchSupport() {
+    console.log('hello');
+    var startX;
+    var startY;
+    var xDist;
+    var yDist;
+
+    // required min distance travelled to be considered swipe
+    const distanceThreshold = 50;
+
+    // Screen must be touched for 50ms to be registered, otherwise it is
+    // ignored
+    const requiredTime = 50;
+
+    const maxTime = 1000;
+
+    var elapsedTime;
+    var startTime = 0;
+
+    var board = document.getElementsByClassName('board')[0];
+    if (!(board instanceof HTMLElement)) {
+        throw new Error("Couldn't find Board");
+    }
+
+    board.addEventListener('touchstart', function(e){
+        // Get the touched object
+        var touchobj = e.changedTouches[0]
+
+        // Distance is set to 0
+        xDist = 0;
+        yDist = 0;
+
+        // Find the starting point of the touches
+        startX = touchobj.pageX;
+        startY = touchobj.pageY;
+
+        // record time when finger first makes contact with surface
+        startTime = new Date().getTime();
+        e.preventDefault()
+    }, false);
+
+    board.addEventListener('touchmove', function(e){
+        // prevent scrolling when inside DIV
+        e.preventDefault()
+    }, false)
+
+    board.addEventListener('touchend', function(e){
+        // Get the touched object
+        var touchobj = e.changedTouches[0]
+
+        // get total dist travelled by finger while in contact with surface
+        xDist = touchobj.pageX - startX;
+        yDist = touchobj.pageY - startY;
+
+        // get time elapsed
+        elapsedTime = new Date().getTime() - startTime;
+
+        if (elapsedTime < requiredTime || elapsedTime > maxTime) {
+            e.preventDefault();
+            return;
+        }
+
+        if (Math.abs(xDist) < distanceThreshold && Math.abs(yDist) < distanceThreshold) {
+            // Screen tap
+            if (elapsedTime > 300) {
+                // msg = "Screen Tap and Hold";
+            } else {
+                Game.rotateCW();
+            }
+        } else if (Math.abs(xDist) > Math.abs(yDist)) {
+            xDist < 0 ? Game.moveLeft() : Game.moveRight();
+        } else {
+            yDist < 0 ? Game.togglePause() : Game.drop();
+        }
+
+        e.preventDefault()
+    }, false)
+}
+
 function htmlToElement(html : string) : ChildNode {
+    alert('start htmltoelement')
     var template = document.createElement('template');
+    alert('created element')
     // Never return a text node of whitespace as the result
     html = html.trim();
+    alert('trimmed')
     template.innerHTML = html;
+    alert('set html')
     return template.content.firstChild;
 }
 
@@ -848,6 +957,11 @@ function unique(list : number[]) : number[] {
 }
 
 window.onload = function() {
+    alert('HELLO 1');
+    addPolyFill();
+    if (!Array.from) {
+        alert('Array.from is not present. The polyfill did not work');
+    }
     setupUserKeys();
     Game.start(6);
 }
