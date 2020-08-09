@@ -792,9 +792,43 @@ function unique(list) {
 window.onload = function () {
     alert('HELLO 1');
     addPolyFill();
+    var init = {
+        'lvl': '-1',
+        'seed': ''
+    };
+    // Get arguments from URL. We expect a level and seed for the RNG
+    var GET_ARGS = location.search.substr(1).split('&').reduce(function (acc, val) {
+        var _a = val.split('='), key = _a[0], value = _a[1];
+        if (value === undefined) {
+            return acc;
+        }
+        acc[key] = value;
+        return acc;
+    }, init);
+    var level = parseInt(GET_ARGS.lvl, 10);
+    if (isNaN(level)) {
+        level = 0;
+    }
+    else if (level < 0) {
+        // This means that no level was specified. Ask the User for a starting
+        // level
+        level = parseInt(prompt("Choose a Starting Level (0 through 19):"), 10);
+        while (isNaN(level) || level < 0 || level > 19) {
+            level = parseInt(prompt("You must enter a level between 0 and 19"), 10);
+        }
+    }
+    var seed = GET_ARGS.seed;
+    if (seed === '') {
+        // If no seed, then generate one
+        seed = (Math.random() * 10000000000000000).toString();
+    }
+    // XXX: Ignore the typescript error for this. The seedrandom.min.js adds
+    // this and I can't get the TS type definitions to work.
+    Math.seedrandom(seed);
+    window.history.replaceState(null, '', '/tetris?lvl=' + level + '&seed=' + seed);
     if (!Array.from) {
         alert('Array.from is not present. The polyfill did not work');
     }
     setupUserKeys();
-    Game.start(6);
+    Game.start(level);
 };
