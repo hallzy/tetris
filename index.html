@@ -2,10 +2,10 @@
 <html>
     <head>
         <link rel='shortcut icon' type='image/x-icon' href='/tetris/favicon.ico'>
-        <link rel=stylesheet type=text/css href=/tetris/tetris.css?v=46>
-        <script type='text/javascript' src=/tetris/seedrandom.min.js?v=46></script>
-        <script type='text/javascript' src=/tetris/polyfill.js?v=46></script>
-        <script type='text/javascript' src=/tetris/tetris.js?v=46></script>
+        <link rel=stylesheet type=text/css href=/tetris/tetris.css?v=57>
+        <script type='text/javascript' src=/tetris/seedrandom.min.js?v=57></script>
+        <script type='text/javascript' src=/tetris/polyfill.js?v=57></script>
+        <script type='text/javascript' src=/tetris/tetris.js?v=57></script>
         <title>TETRIS</title>
     </head>
     <body>
@@ -13,246 +13,273 @@
             <h2>Level <span id='level'>0</span>Score: <span id='score'>0</span>Lines <span id='lines'>0</span></h2>
         </div>
         <div class='pause_banner'>PAUSED</div>
-        <div class='board'>
-            <div class='row r20'>
-                <div class='cell c1'></div>
-                <div class='cell c2'></div>
-                <div class='cell c3'></div>
-                <div class='cell c4'></div>
-                <div class='cell c5'></div>
-                <div class='cell c6'></div>
-                <div class='cell c7'></div>
-                <div class='cell c8'></div>
-                <div class='cell c9'></div>
-                <div class='cell c10'></div>
-            </div>
-            <div class='row r19'>
-                <div class='cell c1'></div>
-                <div class='cell c2'></div>
-                <div class='cell c3'></div>
-                <div class='cell c4'></div>
-                <div class='cell c5'></div>
-                <div class='cell c6'></div>
-                <div class='cell c7'></div>
-                <div class='cell c8'></div>
-                <div class='cell c9'></div>
-                <div class='cell c10'></div>
-            </div>
-            <div class='row r18'>
-                <div class='cell c1'></div>
-                <div class='cell c2'></div>
-                <div class='cell c3'></div>
-                <div class='cell c4'></div>
-                <div class='cell c5'></div>
-                <div class='cell c6'></div>
-                <div class='cell c7'></div>
-                <div class='cell c8'></div>
-                <div class='cell c9'></div>
-                <div class='cell c10'></div>
-            </div>
-            <div class='row r17'>
-                <div class='cell c1'></div>
-                <div class='cell c2'></div>
-                <div class='cell c3'></div>
-                <div class='cell c4'></div>
-                <div class='cell c5'></div>
-                <div class='cell c6'></div>
-                <div class='cell c7'></div>
-                <div class='cell c8'></div>
-                <div class='cell c9'></div>
-                <div class='cell c10'></div>
-            </div>
-            <div class='row r16'>
-                <div class='cell c1'></div>
-                <div class='cell c2'></div>
-                <div class='cell c3'></div>
-                <div class='cell c4'></div>
-                <div class='cell c5'></div>
-                <div class='cell c6'></div>
-                <div class='cell c7'></div>
-                <div class='cell c8'></div>
-                <div class='cell c9'></div>
-                <div class='cell c10'></div>
-            </div>
-            <div class='row r15'>
-                <div class='cell c1'></div>
-                <div class='cell c2'></div>
-                <div class='cell c3'></div>
-                <div class='cell c4'></div>
-                <div class='cell c5'></div>
-                <div class='cell c6'></div>
-                <div class='cell c7'></div>
-                <div class='cell c8'></div>
-                <div class='cell c9'></div>
-                <div class='cell c10'></div>
-            </div>
-            <div class='row r14'>
-                <div class='cell c1'></div>
-                <div class='cell c2'></div>
-                <div class='cell c3'></div>
-                <div class='cell c4'></div>
-                <div class='cell c5'></div>
-                <div class='cell c6'></div>
-                <div class='cell c7'></div>
-                <div class='cell c8'></div>
-                <div class='cell c9'></div>
-                <div class='cell c10'></div>
-            </div>
-            <div class='row r13'>
-                <div class='cell c1'></div>
-                <div class='cell c2'></div>
-                <div class='cell c3'></div>
-                <div class='cell c4'></div>
-                <div class='cell c5'></div>
-                <div class='cell c6'></div>
-                <div class='cell c7'></div>
-                <div class='cell c8'></div>
-                <div class='cell c9'></div>
-                <div class='cell c10'></div>
-            </div>
-            <div class='row r12'>
-                <div class='cell c1'></div>
-                <div class='cell c2'></div>
-                <div class='cell c3'></div>
-                <div class='cell c4'></div>
-                <div class='cell c5'></div>
-                <div class='cell c6'></div>
-                <div class='cell c7'></div>
-                <div class='cell c8'></div>
-                <div class='cell c9'></div>
-                <div class='cell c10'></div>
-            </div>
-            <div class='row r11'>
-                <div class='cell c1'></div>
-                <div class='cell c2'></div>
-                <div class='cell c3'></div>
-                <div class='cell c4'></div>
-                <div class='cell c5'></div>
-                <div class='cell c6'></div>
-                <div class='cell c7'></div>
-                <div class='cell c8'></div>
-                <div class='cell c9'></div>
-                <div class='cell c10'></div>
-            </div>
-            <div class='row r10'>
-                <div class='cell c1'></div>
-                <div class='cell c2'></div>
-                <div class='cell c3'></div>
-                <div class='cell c4'></div>
-                <div class='cell c5'></div>
-                <div class='cell c6'></div>
-                <div class='cell c7'></div>
-                <div class='cell c8'></div>
-                <div class='cell c9'></div>
-                <div class='cell c10'></div>
-            </div>
-            <div class='row r9'>
-                <div class='cell c1'></div>
-                <div class='cell c2'></div>
-                <div class='cell c3'></div>
-                <div class='cell c4'></div>
-                <div class='cell c5'></div>
-                <div class='cell c6'></div>
-                <div class='cell c7'></div>
-                <div class='cell c8'></div>
-                <div class='cell c9'></div>
-                <div class='cell c10'></div>
-            </div>
-            <div class='row r8'>
-                <div class='cell c1'></div>
-                <div class='cell c2'></div>
-                <div class='cell c3'></div>
-                <div class='cell c4'></div>
-                <div class='cell c5'></div>
-                <div class='cell c6'></div>
-                <div class='cell c7'></div>
-                <div class='cell c8'></div>
-                <div class='cell c9'></div>
-                <div class='cell c10'></div>
-            </div>
-            <div class='row r7'>
-                <div class='cell c1'></div>
-                <div class='cell c2'></div>
-                <div class='cell c3'></div>
-                <div class='cell c4'></div>
-                <div class='cell c5'></div>
-                <div class='cell c6'></div>
-                <div class='cell c7'></div>
-                <div class='cell c8'></div>
-                <div class='cell c9'></div>
-                <div class='cell c10'></div>
-            </div>
-            <div class='row r6'>
-                <div class='cell c1'></div>
-                <div class='cell c2'></div>
-                <div class='cell c3'></div>
-                <div class='cell c4'></div>
-                <div class='cell c5'></div>
-                <div class='cell c6'></div>
-                <div class='cell c7'></div>
-                <div class='cell c8'></div>
-                <div class='cell c9'></div>
-                <div class='cell c10'></div>
-            </div>
-            <div class='row r5'>
-                <div class='cell c1'></div>
-                <div class='cell c2'></div>
-                <div class='cell c3'></div>
-                <div class='cell c4'></div>
-                <div class='cell c5'></div>
-                <div class='cell c6'></div>
-                <div class='cell c7'></div>
-                <div class='cell c8'></div>
-                <div class='cell c9'></div>
-                <div class='cell c10'></div>
-            </div>
-            <div class='row r4'>
-                <div class='cell c1'></div>
-                <div class='cell c2'></div>
-                <div class='cell c3'></div>
-                <div class='cell c4'></div>
-                <div class='cell c5'></div>
-                <div class='cell c6'></div>
-                <div class='cell c7'></div>
-                <div class='cell c8'></div>
-                <div class='cell c9'></div>
-                <div class='cell c10'></div>
-            </div>
-            <div class='row r3'>
-                <div class='cell c1'></div>
-                <div class='cell c2'></div>
-                <div class='cell c3'></div>
-                <div class='cell c4'></div>
-                <div class='cell c5'></div>
-                <div class='cell c6'></div>
-                <div class='cell c7'></div>
-                <div class='cell c8'></div>
-                <div class='cell c9'></div>
-                <div class='cell c10'></div>
-            </div>
-            <div class='row r2'>
-                <div class='cell c1'></div>
-                <div class='cell c2'></div>
-                <div class='cell c3'></div>
-                <div class='cell c4'></div>
-                <div class='cell c5'></div>
-                <div class='cell c6'></div>
-                <div class='cell c7'></div>
-                <div class='cell c8'></div>
-                <div class='cell c9'></div>
-                <div class='cell c10'></div>
-            </div>
-            <div class='row r1'>
-                <div class='cell c1'></div>
-                <div class='cell c2'></div>
-                <div class='cell c3'></div>
-                <div class='cell c4'></div>
-                <div class='cell c5'></div>
-                <div class='cell c6'></div>
-                <div class='cell c7'></div>
-                <div class='cell c8'></div>
-                <div class='cell c9'></div>
-                <div class='cell c10'></div>
+        <div class='mainArea'>
+            <div class='row'>
+                <div class='cell'>
+                    <div class='board'>
+                        <div class='row r20'>
+                            <div class='cell c1'></div>
+                            <div class='cell c2'></div>
+                            <div class='cell c3'></div>
+                            <div class='cell c4'></div>
+                            <div class='cell c5'></div>
+                            <div class='cell c6'></div>
+                            <div class='cell c7'></div>
+                            <div class='cell c8'></div>
+                            <div class='cell c9'></div>
+                            <div class='cell c10'></div>
+                        </div>
+                        <div class='row r19'>
+                            <div class='cell c1'></div>
+                            <div class='cell c2'></div>
+                            <div class='cell c3'></div>
+                            <div class='cell c4'></div>
+                            <div class='cell c5'></div>
+                            <div class='cell c6'></div>
+                            <div class='cell c7'></div>
+                            <div class='cell c8'></div>
+                            <div class='cell c9'></div>
+                            <div class='cell c10'></div>
+                        </div>
+                        <div class='row r18'>
+                            <div class='cell c1'></div>
+                            <div class='cell c2'></div>
+                            <div class='cell c3'></div>
+                            <div class='cell c4'></div>
+                            <div class='cell c5'></div>
+                            <div class='cell c6'></div>
+                            <div class='cell c7'></div>
+                            <div class='cell c8'></div>
+                            <div class='cell c9'></div>
+                            <div class='cell c10'></div>
+                        </div>
+                        <div class='row r17'>
+                            <div class='cell c1'></div>
+                            <div class='cell c2'></div>
+                            <div class='cell c3'></div>
+                            <div class='cell c4'></div>
+                            <div class='cell c5'></div>
+                            <div class='cell c6'></div>
+                            <div class='cell c7'></div>
+                            <div class='cell c8'></div>
+                            <div class='cell c9'></div>
+                            <div class='cell c10'></div>
+                        </div>
+                        <div class='row r16'>
+                            <div class='cell c1'></div>
+                            <div class='cell c2'></div>
+                            <div class='cell c3'></div>
+                            <div class='cell c4'></div>
+                            <div class='cell c5'></div>
+                            <div class='cell c6'></div>
+                            <div class='cell c7'></div>
+                            <div class='cell c8'></div>
+                            <div class='cell c9'></div>
+                            <div class='cell c10'></div>
+                        </div>
+                        <div class='row r15'>
+                            <div class='cell c1'></div>
+                            <div class='cell c2'></div>
+                            <div class='cell c3'></div>
+                            <div class='cell c4'></div>
+                            <div class='cell c5'></div>
+                            <div class='cell c6'></div>
+                            <div class='cell c7'></div>
+                            <div class='cell c8'></div>
+                            <div class='cell c9'></div>
+                            <div class='cell c10'></div>
+                        </div>
+                        <div class='row r14'>
+                            <div class='cell c1'></div>
+                            <div class='cell c2'></div>
+                            <div class='cell c3'></div>
+                            <div class='cell c4'></div>
+                            <div class='cell c5'></div>
+                            <div class='cell c6'></div>
+                            <div class='cell c7'></div>
+                            <div class='cell c8'></div>
+                            <div class='cell c9'></div>
+                            <div class='cell c10'></div>
+                        </div>
+                        <div class='row r13'>
+                            <div class='cell c1'></div>
+                            <div class='cell c2'></div>
+                            <div class='cell c3'></div>
+                            <div class='cell c4'></div>
+                            <div class='cell c5'></div>
+                            <div class='cell c6'></div>
+                            <div class='cell c7'></div>
+                            <div class='cell c8'></div>
+                            <div class='cell c9'></div>
+                            <div class='cell c10'></div>
+                        </div>
+                        <div class='row r12'>
+                            <div class='cell c1'></div>
+                            <div class='cell c2'></div>
+                            <div class='cell c3'></div>
+                            <div class='cell c4'></div>
+                            <div class='cell c5'></div>
+                            <div class='cell c6'></div>
+                            <div class='cell c7'></div>
+                            <div class='cell c8'></div>
+                            <div class='cell c9'></div>
+                            <div class='cell c10'></div>
+                        </div>
+                        <div class='row r11'>
+                            <div class='cell c1'></div>
+                            <div class='cell c2'></div>
+                            <div class='cell c3'></div>
+                            <div class='cell c4'></div>
+                            <div class='cell c5'></div>
+                            <div class='cell c6'></div>
+                            <div class='cell c7'></div>
+                            <div class='cell c8'></div>
+                            <div class='cell c9'></div>
+                            <div class='cell c10'></div>
+                        </div>
+                        <div class='row r10'>
+                            <div class='cell c1'></div>
+                            <div class='cell c2'></div>
+                            <div class='cell c3'></div>
+                            <div class='cell c4'></div>
+                            <div class='cell c5'></div>
+                            <div class='cell c6'></div>
+                            <div class='cell c7'></div>
+                            <div class='cell c8'></div>
+                            <div class='cell c9'></div>
+                            <div class='cell c10'></div>
+                        </div>
+                        <div class='row r9'>
+                            <div class='cell c1'></div>
+                            <div class='cell c2'></div>
+                            <div class='cell c3'></div>
+                            <div class='cell c4'></div>
+                            <div class='cell c5'></div>
+                            <div class='cell c6'></div>
+                            <div class='cell c7'></div>
+                            <div class='cell c8'></div>
+                            <div class='cell c9'></div>
+                            <div class='cell c10'></div>
+                        </div>
+                        <div class='row r8'>
+                            <div class='cell c1'></div>
+                            <div class='cell c2'></div>
+                            <div class='cell c3'></div>
+                            <div class='cell c4'></div>
+                            <div class='cell c5'></div>
+                            <div class='cell c6'></div>
+                            <div class='cell c7'></div>
+                            <div class='cell c8'></div>
+                            <div class='cell c9'></div>
+                            <div class='cell c10'></div>
+                        </div>
+                        <div class='row r7'>
+                            <div class='cell c1'></div>
+                            <div class='cell c2'></div>
+                            <div class='cell c3'></div>
+                            <div class='cell c4'></div>
+                            <div class='cell c5'></div>
+                            <div class='cell c6'></div>
+                            <div class='cell c7'></div>
+                            <div class='cell c8'></div>
+                            <div class='cell c9'></div>
+                            <div class='cell c10'></div>
+                        </div>
+                        <div class='row r6'>
+                            <div class='cell c1'></div>
+                            <div class='cell c2'></div>
+                            <div class='cell c3'></div>
+                            <div class='cell c4'></div>
+                            <div class='cell c5'></div>
+                            <div class='cell c6'></div>
+                            <div class='cell c7'></div>
+                            <div class='cell c8'></div>
+                            <div class='cell c9'></div>
+                            <div class='cell c10'></div>
+                        </div>
+                        <div class='row r5'>
+                            <div class='cell c1'></div>
+                            <div class='cell c2'></div>
+                            <div class='cell c3'></div>
+                            <div class='cell c4'></div>
+                            <div class='cell c5'></div>
+                            <div class='cell c6'></div>
+                            <div class='cell c7'></div>
+                            <div class='cell c8'></div>
+                            <div class='cell c9'></div>
+                            <div class='cell c10'></div>
+                        </div>
+                        <div class='row r4'>
+                            <div class='cell c1'></div>
+                            <div class='cell c2'></div>
+                            <div class='cell c3'></div>
+                            <div class='cell c4'></div>
+                            <div class='cell c5'></div>
+                            <div class='cell c6'></div>
+                            <div class='cell c7'></div>
+                            <div class='cell c8'></div>
+                            <div class='cell c9'></div>
+                            <div class='cell c10'></div>
+                        </div>
+                        <div class='row r3'>
+                            <div class='cell c1'></div>
+                            <div class='cell c2'></div>
+                            <div class='cell c3'></div>
+                            <div class='cell c4'></div>
+                            <div class='cell c5'></div>
+                            <div class='cell c6'></div>
+                            <div class='cell c7'></div>
+                            <div class='cell c8'></div>
+                            <div class='cell c9'></div>
+                            <div class='cell c10'></div>
+                        </div>
+                        <div class='row r2'>
+                            <div class='cell c1'></div>
+                            <div class='cell c2'></div>
+                            <div class='cell c3'></div>
+                            <div class='cell c4'></div>
+                            <div class='cell c5'></div>
+                            <div class='cell c6'></div>
+                            <div class='cell c7'></div>
+                            <div class='cell c8'></div>
+                            <div class='cell c9'></div>
+                            <div class='cell c10'></div>
+                        </div>
+                        <div class='row r1'>
+                            <div class='cell c1'></div>
+                            <div class='cell c2'></div>
+                            <div class='cell c3'></div>
+                            <div class='cell c4'></div>
+                            <div class='cell c5'></div>
+                            <div class='cell c6'></div>
+                            <div class='cell c7'></div>
+                            <div class='cell c8'></div>
+                            <div class='cell c9'></div>
+                            <div class='cell c10'></div>
+                        </div>
+                    </div>
+                </div>
+                <div class='cell'>
+                    <div class='info'>
+                        <div class='row'>
+                            <div class='preview'>
+                                <div>Next Piece: <span></span></div>
+                            </div>
+                        </div>
+                        <div class='row'>
+                            <div class='longbar-drought'>
+                                <div>Longbar Drought: <span></span></div>
+                            </div>
+                            <div class='longest-longbar-drought'>
+                                <div>Longest Longbar Drought: <span></span></div>
+                            </div>
+                        </div>
+                        <div class='row'>
+                            <div class='preview'>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </body>

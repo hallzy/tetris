@@ -461,7 +461,7 @@ var Game = /** @class */ (function () {
         var completedRows = [];
         var isRowComplete = false;
         for (var i = 0; i < rowsToCheck.length; i++) {
-            var row = document.querySelector('.row.r' + rowsToCheck[i]);
+            var row = document.querySelector('.board .row.r' + rowsToCheck[i]);
             if (!(row instanceof HTMLElement)) {
                 throw new Error("Couldn't find Row index " + i);
             }
@@ -481,7 +481,7 @@ var Game = /** @class */ (function () {
             this.updateLines(completedRows.length);
             this.updateLevel();
         }
-        alert('updated score, lines, and level');
+        // alert('updated score, lines, and level')
         // We have now removed all complete lines now. Insert the number of
         // removed lines to the top now. And add the c1 to c10 classes to each
         // column
@@ -491,18 +491,18 @@ var Game = /** @class */ (function () {
             if (!(board instanceof HTMLElement)) {
                 throw new Error("Couldn't find Board");
             }
-            alert('before insertbefore');
+            // alert('before insertbefore');
             // TODO: iOS fails on this line... Whether it is the call to
             // insertBefore, or something inside htmlToElement, I don't know...
             // It gets past all the lines in htmlToElement except for the return
             // statement
             var newRow = board.insertBefore(htmlToElement(rowHTML), board.children[0]);
-            alert('done inserting');
+            // alert('done inserting')
         }
-        alert('Inserted rows');
+        // alert('Inserted rows')
         // Now go back through all the rows and update the r1 to r20 classes.
         var count = 1;
-        var rows = document.getElementsByClassName('row');
+        var rows = document.querySelectorAll('.board .row');
         for (var i = rows.length - 1; i >= 0; i--) {
             var row = rows[i];
             if (!(row instanceof HTMLElement)) {
@@ -527,8 +527,54 @@ var Game = /** @class */ (function () {
         }, this.getSpeed());
     };
     Game.generatePiece = function () {
-        var random = Math.floor(Math.random() * this.Pieces.length);
-        this.activePiece = this.Pieces[random]();
+        // If we don't have a next piece or the next piece is invalid, generate
+        // a random index for the current piece. Otherwise, we will use the
+        // nextPieceIdx
+        var idx = this.nextPieceIdx;
+        if (idx < 0 || idx >= this.Pieces.length) {
+            var idx = Math.floor(Math.random() * this.Pieces.length);
+        }
+        // If the new active piece will be a longbar, then reset the drought to
+        // 0, otherwise add 1.
+        // TODO: Add an ENUM for the idx so it is easier to read
+        this.longbarDrought = (idx === 0) ? 0 : this.longbarDrought + 1;
+        if (this.longbarDrought > this.longestLongbarDrought) {
+            this.longestLongbarDrought = this.longbarDrought;
+        }
+        // Determine what the next piece will be
+        this.nextPieceIdx = Math.floor(Math.random() * this.Pieces.length);
+        // TODO: Generate a preview of next piece
+        var msg;
+        switch (this.nextPieceIdx) {
+            case 0:
+                msg = "Long Bar";
+                break;
+            case 1:
+                msg = "Square";
+                break;
+            case 2:
+                msg = "S Piece";
+                break;
+            case 3:
+                msg = "Z Piece";
+                break;
+            case 4:
+                msg = "L Piece";
+                break;
+            case 5:
+                msg = "J Piece";
+                break;
+            case 6:
+                msg = "T Piece";
+                break;
+            default:
+                msg = "UNKNOWN";
+        }
+        document.querySelector('.info .preview span').textContent = msg;
+        document.querySelector('.info .longbar-drought span').textContent = this.longbarDrought.toString();
+        document.querySelector('.info .longest-longbar-drought span').textContent = this.longestLongbarDrought.toString();
+        // Create the new piece
+        this.activePiece = this.Pieces[idx]();
     };
     Game.moveLeft = function () {
         if (Game.isPaused) {
@@ -575,9 +621,9 @@ var Game = /** @class */ (function () {
     };
     Game.togglePause = function () {
         this.isPaused = this.isPaused ? false : true;
-        var board = document.getElementsByClassName('board')[0];
-        if (!(board instanceof HTMLElement)) {
-            throw new Error("Couldn't find Board");
+        var mainArea = document.getElementsByClassName('mainArea')[0];
+        if (!(mainArea instanceof HTMLElement)) {
+            throw new Error("Couldn't find mainArea");
         }
         var pauseBanner = document.getElementsByClassName('pause_banner')[0];
         if (!(pauseBanner instanceof HTMLElement)) {
@@ -585,11 +631,11 @@ var Game = /** @class */ (function () {
         }
         if (this.isPaused) {
             this.timer.pause();
-            board.style.opacity = '0.3';
+            mainArea.classList.add('paused');
             pauseBanner.classList.remove('hidden');
         }
         else {
-            board.style.opacity = '1';
+            mainArea.classList.remove('paused');
             pauseBanner.classList.add('hidden');
             this.timer.resume();
         }
@@ -667,6 +713,9 @@ var Game = /** @class */ (function () {
         function () { return new TPiece(); },
     ];
     Game.lines = 0;
+    Game.nextPieceIdx = -1;
+    Game.longbarDrought = 0;
+    Game.longestLongbarDrought = 0;
     Game.score = 0;
     Game.isPaused = false;
     return Game;
@@ -776,21 +825,21 @@ function setupMobileTouchSupport() {
     }, false);
 }
 function htmlToElement(html) {
-    alert('start htmltoelement');
+    // alert('start htmltoelement')
     var template = document.createElement('template');
-    alert('created element');
+    // alert('created element')
     // Never return a text node of whitespace as the result
     html = html.trim();
-    alert('trimmed');
+    // alert('trimmed')
     template.innerHTML = html;
-    alert('set html');
+    // alert('set html')
     return template.content.firstChild;
 }
 function unique(list) {
     return list.filter(function (val, idx, self) { return self.indexOf(val) === idx; });
 }
 window.onload = function () {
-    alert('HELLO 1');
+    // alert('HELLO 1');
     addPolyFill();
     var init = {
         'lvl': '-1',

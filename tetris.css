@@ -1,3 +1,7 @@
+body {
+    margin: 0;
+}
+
 .heading {
     text-align: center;
 }
@@ -7,7 +11,7 @@
     width: 44vh;
     height: 88vh;
     display: table;
-    margin: auto;
+    /* margin: auto; */
 }
 
 .row {
@@ -15,23 +19,19 @@
 }
 
 .cell {
-    border: 1px solid grey;
     display: table-cell;
+    vertical-align: top;
 }
 
-.cell.red {
-    background-color: blue;
-}
-
-.hidden {
-    display: none;
+.board .cell {
+    border: 1px solid grey;
 }
 
 .pause_banner {
     position: absolute;
     font-size: 10vh;
     font-weight: bold;
-    width: 100%;
+    width: 100vw;
     text-align: center;
     top: 25vh;
 }
@@ -42,4 +42,30 @@
 
 .heading span {
     margin-right: 30px;
+}
+
+.mainArea {
+    display: table;
+    width: 55vw;
+    margin: auto;
+}
+
+.info {
+    display: table;
+    border: 5px solid red;
+    width: 25vh;
+    height: 88vh;
+}
+
+.preview {
+    display: table-cell;
+    border: 1px solid black;
+}
+
+.paused {
+    opacity: 0.3;
+}
+
+.hidden {
+    display: none;
 }
