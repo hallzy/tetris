@@ -10,7 +10,7 @@
 // - Better Mobile swipe/touch support
 //   - Maybe use the touchmove event to have the piece track the users finger
 //     instead of having swipes
-// - Add a losing condition
+// - Ability to restart after losing
 // - Save highscores and show the high scores for a particular game sequence and
 //   start level
 
@@ -529,6 +529,7 @@ class Game {
     private static score : number = 0;
 
     public static isPaused = false;
+    public static isActive = true;
 
     public static start(startLevel : number) {
         this.startLevel = startLevel;
@@ -541,7 +542,7 @@ class Game {
         this.togglePause();
     }
 
-    private static updateScore(linesScored : number) {
+    private static addPointsForLinesCleared(linesScored : number) {
         if (linesScored < 1 || linesScored > 4) {
             throw new Error("Tried to update the score with " + linesScored + " scored lines.");
         }
@@ -554,7 +555,9 @@ class Game {
         }
 
         this.score += (this.level + 1) * basePoints[linesScored];
+    }
 
+    private static updateScore() {
         var scoreElem = document.getElementById('score');
         if (!(scoreElem instanceof HTMLElement)) {
             throw new Error("Could not find score element");
@@ -597,7 +600,7 @@ class Game {
         }
 
         if (completedRows.length > 0) {
-            this.updateScore(completedRows.length);
+            this.addPointsForLinesCleared(completedRows.length);
             this.updateLines(completedRows.length);
             this.updateLevel();
         }
@@ -652,17 +655,31 @@ class Game {
         }
     }
 
-    private static advance() {
-        this.timer = new Timer(() => {
+    private static advance(instantAdvance : boolean = false) {
+        var callback = () => {
             if (this.activePiece.moveDown()) {
                     this.advance();
             } else {
                 var finalPosition = this.activePiece.getCells();
                 this.removeCompleteLines(finalPosition);
-                this.generatePiece();
-                Game.advance();
+
+                // If couldn't generate piece (probably because game was lost),
+                // then don't continue
+                if (this.generatePiece()) {
+                    Game.advance();
+                }
             }
-        }, this.getSpeed());
+            this.updateScore();
+        }
+
+        // If instant advance, then run the advance steps instantly instead of
+        // after a delay
+        if (instantAdvance) {
+            callback();
+            return;
+        }
+
+        this.timer = new Timer(callback, this.getSpeed());
     }
 
     // Erase the preview board
@@ -685,7 +702,27 @@ class Game {
         }
     }
 
-    public static generatePiece() {
+    private static isGameLost() : boolean {
+        var cells = this.activePiece.getCells();
+        for (var i in cells) {
+            var cell = cells[i];
+
+            var selector = '.r' + cell.row + ' > .c' + cell.col;
+            var element = document.querySelector(selector);
+            if (!(element instanceof HTMLElement)) {
+                return true;
+            }
+
+            // Square is not empty, so the piece can not be played. Player loses
+            if (element.style.backgroundColor !== '') {
+                Game.isActive = false;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static generatePiece() : boolean {
 
         // If we don't have a next piece or the next piece is invalid, generate
         // a random index for the current piece. Otherwise, we will use the
@@ -715,25 +752,33 @@ class Game {
 
         // Create the new piece
         this.activePiece = this.Pieces[idx]();
+
+        if (this.isGameLost()) {
+            // TODO: Show a message and a way to reset the game
+            alert("You Lost");
+            return false;
+        }
+
         this.activePiece.draw();
+        return true;
     }
 
     public static moveLeft() {
-        if (Game.isPaused) {
+        if (Game.isPaused || !Game.isActive) {
             return;
         }
         this.activePiece.moveLeft();
     }
 
     public static moveRight() {
-        if (Game.isPaused) {
+        if (Game.isPaused || !Game.isActive) {
             return;
         }
         this.activePiece.moveRight();
     }
 
     public static moveDown() {
-        if (Game.isPaused) {
+        if (Game.isPaused || !Game.isActive) {
             return;
         }
         if (!this.activePiece.moveDown()) {
@@ -744,29 +789,54 @@ class Game {
     }
 
     public static drop() {
-        if (Game.isPaused) {
+        if (Game.isPaused || !Game.isActive) {
             return;
         }
         this.timer.pause();
-        while (this.activePiece.moveDown());
-        this.advance();
+
+        // While we drop rows we need to add to a counter for scoring points
+        var points = 0;
+        while (this.activePiece.moveDown()) {
+            points++;
+        }
+
+        // Now the fun begins... We should just be able to add the points to our
+        // score, but to be consistent with NES Tetris, I have to program in a
+        // scoring bug that exists in the original game.
+
+        // In the game, you get 1 point per square dropped, but up to a maximum
+        // of 15, and after that the score resets back to 10 and continues. So
+        // if you drop a piece 17 rows, you get 11 points for example.
+
+        if (points > 15) {
+            points = (points % 16) + 10;
+        }
+
+        Game.score += points;
+
+        // True is mean to instantly run the advance instead of waiting for a
+        // delay. Dropping should instantly advance to the next piece
+        this.advance(true);
     }
 
     public static rotateCCW() {
-        if (Game.isPaused) {
+        if (Game.isPaused || !Game.isActive) {
             return;
         }
         this.activePiece.rotate270();
     }
 
     public static rotateCW() {
-        if (Game.isPaused) {
+        if (Game.isPaused || !Game.isActive) {
             return;
         }
         this.activePiece.rotate90();
     }
 
     public static togglePause() {
+        if (!Game.isActive) {
+            return;
+        }
         this.isPaused = this.isPaused ? false : true;
 
         var mainArea = document.getElementsByClassName('mainArea')[0];

@@ -39,6 +39,9 @@ Some specifics of NES Tetris are:
     * 1200 points for a tetris
     * Each of these points is multiplied by your current level + 1 and added to
       your point total.
+    * You can also get points for pressing the down button to drop a piece
+      faster, but the scoring for that is actually kind of weird and
+      complicated, so I will explain that later below.
 * The speed of levels is the same. The speed of NES Tetris was actually based on
   the frame rate. Level 0 is where a piece stays in the same grid for 48 frames
   for example. North American NES Tetris ran at very close to 60 FPS, so at level
@@ -60,6 +63,56 @@ guaranteed the same sequence of pieces to be as fair as possible.
 
 I haven't seen anything online that does this, so I thought I could kill some
 time and do it myself.
+
+## Scoring
+
+As stated, I have tried my best to make the scoring as similar as possible to
+the original game.
+
+You get:
+
+* 40 points for clearing 1 line
+* 100 points for clearing 2 lines
+* 300 points for clearing 3 lines
+* 1200 points for clearing 4 lines (scoring a Tetris)
+
+You also get points when you press down to drop a piece faster, and as mentioned
+earlier, the rules for this are pretty complicated
+
+* You only get points when you hold down the drop button and the piece actually
+  hits the bottom or another piece. If you press the button or only hold it down
+  part way and then let go, you don't get any points
+* Due to a bug in the code, the most points you can get for a drop is 15. I will
+  explain the bug below
+* With the exception of the case where the bug crops up, you get 1 point for
+  each square that you drop the piece.
+
+The bug seems to be that the 1's digit of the hexadecimal number that counts the
+rows is added correctly to the score, but the 16's digit is not, and is added as
+if it is the 10's digit.
+
+As an example, 0x0E is 14 in decimal. The E is added correctly to your score
+which is then displayed as an increase of 14. The 0 doesn't do anything because
+it is a 0.
+
+If we have 0x12, this is 18 in decimal. You add the 2 which works correctly and
+that is added to your score, but the 1 is added as a 10 instead of a 16, so you
+get 12 points instead of 18.
+
+Because there are only 20 rows in the game, score should range from 0x00 to 0x14
+(or 0 to 20), and because of this limitation, it is probably reasonable to
+assume that a rule to follow is that if the 16's digit is a 0, you convert the
+number to decimal and that is your score. If the 16's digit is a 1, then your
+decimal score is basically just taking off the `0x` from the number and using it
+as is.
+
+So, that is what I will do for this game.
+
+The main difference is that NES Tetris doesn't have a 'drop' button but a down
+button which just moves the piece down 1 cell at a time. This game has a drop
+button for convenience but also a down button. Because the behaviour of NES
+Tetris is that the piece actually has to be dropped, I will only add points if
+the drop key is pressed, not the down arrow.
 
 ## Code and Files
 
@@ -114,6 +167,6 @@ which I need to address, or just other issues.
 - Better Mobile swipe/touch support
   - Maybe use the touchmove event to have the piece track the users finger
     instead of having swipes
-- Add a losing condition
+- Ability to restart after losing
 - Save highscores and show the high scores for a particular game sequence and
   start level

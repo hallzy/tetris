@@ -429,7 +429,7 @@ var Game = /** @class */ (function () {
         this.advance();
         this.togglePause();
     };
-    Game.updateScore = function (linesScored) {
+    Game.addPointsForLinesCleared = function (linesScored) {
         if (linesScored < 1 || linesScored > 4) {
             throw new Error("Tried to update the score with " + linesScored + " scored lines.");
         }
@@ -440,6 +440,8 @@ var Game = /** @class */ (function () {
             4: 1200
         };
         this.score += (this.level + 1) * basePoints[linesScored];
+    };
+    Game.updateScore = function () {
         var scoreElem = document.getElementById('score');
         if (!(scoreElem instanceof HTMLElement)) {
             throw new Error("Could not find score element");
@@ -473,7 +475,7 @@ var Game = /** @class */ (function () {
             }
         }
         if (completedRows.length > 0) {
-            this.updateScore(completedRows.length);
+            this.addPointsForLinesCleared(completedRows.length);
             this.updateLines(completedRows.length);
             this.updateLevel();
         }
@@ -508,19 +510,31 @@ var Game = /** @class */ (function () {
             count++;
         }
     };
-    Game.advance = function () {
+    Game.advance = function (instantAdvance) {
         var _this = this;
-        this.timer = new Timer(function () {
+        if (instantAdvance === void 0) { instantAdvance = false; }
+        var callback = function () {
             if (_this.activePiece.moveDown()) {
                 _this.advance();
             }
             else {
                 var finalPosition = _this.activePiece.getCells();
                 _this.removeCompleteLines(finalPosition);
-                _this.generatePiece();
-                Game.advance();
+                // If couldn't generate piece (probably because game was lost),
+                // then don't continue
+                if (_this.generatePiece()) {
+                    Game.advance();
+                }
             }
-        }, this.getSpeed());
+            _this.updateScore();
+        };
+        // If instant advance, then run the advance steps instantly instead of
+        // after a delay
+        if (instantAdvance) {
+            callback();
+            return;
+        }
+        this.timer = new Timer(callback, this.getSpeed());
     };
     // Erase the preview board
     Game.previewErase = function () {
@@ -537,6 +551,23 @@ var Game = /** @class */ (function () {
                 column.style.backgroundColor = '';
             }
         }
+    };
+    Game.isGameLost = function () {
+        var cells = this.activePiece.getCells();
+        for (var i in cells) {
+            var cell = cells[i];
+            var selector = '.r' + cell.row + ' > .c' + cell.col;
+            var element = document.querySelector(selector);
+            if (!(element instanceof HTMLElement)) {
+                return true;
+            }
+            // Square is not empty, so the piece can not be played. Player loses
+            if (element.style.backgroundColor !== '') {
+                Game.isActive = false;
+                return true;
+            }
+        }
+        return false;
     };
     Game.generatePiece = function () {
         // If we don't have a next piece or the next piece is invalid, generate
@@ -562,22 +593,28 @@ var Game = /** @class */ (function () {
         document.querySelector('.info .longest-longbar-drought h1').textContent = this.longestLongbarDrought.toString();
         // Create the new piece
         this.activePiece = this.Pieces[idx]();
+        if (this.isGameLost()) {
+            // TODO: Show a message and a way to reset the game
+            alert("You Lost");
+            return false;
+        }
         this.activePiece.draw();
+        return true;
     };
     Game.moveLeft = function () {
-        if (Game.isPaused) {
+        if (Game.isPaused || !Game.isActive) {
             return;
         }
         this.activePiece.moveLeft();
     };
     Game.moveRight = function () {
-        if (Game.isPaused) {
+        if (Game.isPaused || !Game.isActive) {
             return;
         }
         this.activePiece.moveRight();
     };
     Game.moveDown = function () {
-        if (Game.isPaused) {
+        if (Game.isPaused || !Game.isActive) {
             return;
         }
         if (!this.activePiece.moveDown()) {
@@ -587,27 +624,45 @@ var Game = /** @class */ (function () {
         }
     };
     Game.drop = function () {
-        if (Game.isPaused) {
+        if (Game.isPaused || !Game.isActive) {
             return;
         }
         this.timer.pause();
-        while (this.activePiece.moveDown())
-            ;
-        this.advance();
+        // While we drop rows we need to add to a counter for scoring points
+        var points = 0;
+        while (this.activePiece.moveDown()) {
+            points++;
+        }
+        // Now the fun begins... We should just be able to add the points to our
+        // score, but to be consistent with NES Tetris, I have to program in a
+        // scoring bug that exists in the original game.
+        // In the game, you get 1 point per square dropped, but up to a maximum
+        // of 15, and after that the score resets back to 10 and continues. So
+        // if you drop a piece 17 rows, you get 11 points for example.
+        if (points > 15) {
+            points = (points % 16) + 10;
+        }
+        Game.score += points;
+        // True is mean to instantly run the advance instead of waiting for a
+        // delay. Dropping should instantly advance to the next piece
+        this.advance(true);
     };
     Game.rotateCCW = function () {
-        if (Game.isPaused) {
+        if (Game.isPaused || !Game.isActive) {
             return;
         }
         this.activePiece.rotate270();
     };
     Game.rotateCW = function () {
-        if (Game.isPaused) {
+        if (Game.isPaused || !Game.isActive) {
             return;
         }
         this.activePiece.rotate90();
     };
     Game.togglePause = function () {
+        if (!Game.isActive) {
+            return;
+        }
         this.isPaused = this.isPaused ? false : true;
         var mainArea = document.getElementsByClassName('mainArea')[0];
         if (!(mainArea instanceof HTMLElement)) {
@@ -706,6 +761,7 @@ var Game = /** @class */ (function () {
     Game.longestLongbarDrought = 0;
     Game.score = 0;
     Game.isPaused = false;
+    Game.isActive = true;
     return Game;
 }());
 function setupUserKeys() {
