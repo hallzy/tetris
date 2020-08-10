@@ -13,8 +13,8 @@ body {
 
 .preview .board {
     margin: auto;
-    width: 90%;
-    height: 25%;
+    width: 16vh;
+    height: 8vh;
 }
 
 .mainBoard.board {
@@ -55,20 +55,15 @@ body {
 
 .mainArea {
     display: table;
-    width: 55vw;
+    width: 64vh;
     margin: auto;
 }
 
 .info {
     display: table;
     border: 5px solid red;
-    width: 25vh;
+    width: 17vh;
     height: 88vh;
-}
-
-.preview {
-    display: table-cell;
-    border: 1px solid black;
 }
 
 .paused {
@@ -84,6 +79,10 @@ body {
     margin: 0;
 }
 
-.longbar-drought {
+.info > div {
     margin-bottom: 25px;
+}
+
+.info > div:last-child {
+    margin-bottom: 0px;
 }
