@@ -74,7 +74,7 @@ JavaScript that can't be run on older devices that I am trying to support. The
 code in those files is not mine, they are taken from the internet.
 
 seedrandom.min.js is also not mine, that belongs to David at
- [davidbau.com](http://davidbau.com/archives/2010/01/30/random_seeds_coded_hints_and_quintillions.html)
+[davidbau.com](http://davidbau.com/archives/2010/01/30/random_seeds_coded_hints_and_quintillions.html)
 
 I use seedrandom to assist with the ability to randomly generate the same set of
 pieces for a given URL. Because JavaScript doesn't have a way to seed the random
@@ -106,22 +106,14 @@ I have a list of features I want to add still, and bugs that I have noticed
 which I need to address, or just other issues.
 
 - See if I can reduce the delay when holding down the arrow keys
-- Rotating pieces at the top of the board doesn't work, probably due to
-  collision detection not letting things go off the top of the screen.
-- Show a preview of the next piece
 - Some sort of animation for clearing lines so it isn't so abrupt
-- Seems to take some time to clear lines... What is causing that delay?
 - Change colour of placed pieces to a Gray or something?
 - Show statistics:
-    - Current long bar drought
-    - Longest long bar drought
-    - The count of each piece that you have seen
-- There seems to be a delay at lower levels to get the next piece generated.
-  I would like that to be quicker
+  - The count of each piece that you have seen
 - Add instructions somewhere
-- Add a way to specify the starting level
 - Better Mobile swipe/touch support
-    - Maybe use the touchmove event to have the piece track the users finger
-      instead of having swipes
-- Have a way to create unique games that can be replayed with the same
-  sequence of pieces and keep track of scores on that particular game
+  - Maybe use the touchmove event to have the piece track the users finger
+    instead of having swipes
+- Add a losing condition
+- Save highscores and show the high scores for a particular game sequence and
+  start level

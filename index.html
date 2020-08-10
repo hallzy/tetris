@@ -2,10 +2,10 @@
 <html>
     <head>
         <link rel='shortcut icon' type='image/x-icon' href='/tetris/favicon.ico'>
-        <link rel=stylesheet type=text/css href=/tetris/tetris.css?v=57>
-        <script type='text/javascript' src=/tetris/seedrandom.min.js?v=57></script>
-        <script type='text/javascript' src=/tetris/polyfill.js?v=57></script>
-        <script type='text/javascript' src=/tetris/tetris.js?v=57></script>
+        <link rel=stylesheet type=text/css href=/tetris/tetris.css?v=73>
+        <script type='text/javascript' src=/tetris/seedrandom.min.js?v=73></script>
+        <script type='text/javascript' src=/tetris/polyfill.js?v=73></script>
+        <script type='text/javascript' src=/tetris/tetris.js?v=73></script>
         <title>TETRIS</title>
     </head>
     <body>
@@ -16,7 +16,7 @@
         <div class='mainArea'>
             <div class='row'>
                 <div class='cell'>
-                    <div class='board'>
+                    <div class='board mainBoard'>
                         <div class='row r20'>
                             <div class='cell c1'></div>
                             <div class='cell c2'></div>
@@ -263,15 +263,43 @@
                     <div class='info'>
                         <div class='row'>
                             <div class='preview'>
-                                <div>Next Piece: <span></span></div>
+                                <h3>Next Piece</h3>
+                                <div class='board'>
+                                    <div class='row r20'>
+                                        <div class='cell c3'></div>
+                                        <div class='cell c4'></div>
+                                        <div class='cell c5'></div>
+                                        <div class='cell c6'></div>
+                                        <div class='cell c7'></div>
+                                        <div class='cell c8'></div>
+                                    </div>
+                                    <div class='row r19'>
+                                        <div class='cell c3'></div>
+                                        <div class='cell c4'></div>
+                                        <div class='cell c5'></div>
+                                        <div class='cell c6'></div>
+                                        <div class='cell c7'></div>
+                                        <div class='cell c8'></div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class='row'>
                             <div class='longbar-drought'>
-                                <div>Longbar Drought: <span></span></div>
+                                <div>
+                                    <h3>Current Drought</h3>
+                                </div>
+                                <div>
+                                    <h1>0</h1>
+                                </div>
                             </div>
                             <div class='longest-longbar-drought'>
-                                <div>Longest Longbar Drought: <span></span></div>
+                                <div>
+                                    <h3>Longest Drought</h3>
+                                </div>
+                                <div>
+                                    <h1>0</h1>
+                                </div>
                             </div>
                         </div>
                         <div class='row'>

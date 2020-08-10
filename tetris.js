@@ -68,36 +68,40 @@ var Piece = /** @class */ (function () {
             if (element instanceof HTMLElement) {
                 element.style.backgroundColor = '';
             }
-            else {
-                return false;
-            }
         }
         return true;
     };
-    Piece.prototype.draw = function () {
+    Piece.prototype.drawHelper = function (selectorPrefix) {
         for (var i in this.cells) {
             var cell = this.cells[i];
-            var selector = '.r' + cell.row + ' > .c' + cell.col;
+            var selector = selectorPrefix + ' .r' + cell.row + ' > .c' + cell.col;
             var element = document.querySelector(selector);
             if (!(element instanceof HTMLElement)) {
-                throw new Error("Failed to find cell -- " + selector);
-                return false;
+                continue;
             }
             element.style.backgroundColor = this.colour;
         }
         return true;
     };
+    Piece.prototype.previewDraw = function () {
+        return this.drawHelper('.preview .board');
+    };
+    Piece.prototype.draw = function () {
+        return this.drawHelper('.mainBoard.board');
+    };
     // true => Collision Detected
     // false => No Collision Detected
     Piece.prototype.collisionDetect = function (row, col) {
         // The row and column have to be within bounds
-        if (row > 20 || row < 1 || col < 1 || col > 10) {
+        if (row < 1 || col < 1 || col > 10) {
             return true;
         }
         var selector = '.r' + row + ' > .c' + col;
         var element = document.querySelector(selector);
         if (!(element instanceof HTMLElement)) {
-            throw new Error('Failed to find cell element -- ' + selector);
+            // If board cell doesn't exist, then no collision. This could happen
+            // if you rotate at the top of the board
+            return false;
         }
         this.erase();
         var colour = element.style.backgroundColor;
@@ -168,7 +172,6 @@ var LongBar = /** @class */ (function (_super) {
             { 'row': 20, 'col': 7 },
         ];
         _this.name = "Long Bar";
-        _this.draw();
         return _this;
     }
     // Rotate CCW just does the exact same thing that rotate90 does
@@ -238,7 +241,6 @@ var Square = /** @class */ (function (_super) {
             { 'row': 19, 'col': 6 },
         ];
         _this.name = "Square";
-        _this.draw();
         return _this;
     }
     // Square doesn't rotate
@@ -327,7 +329,6 @@ var SPiece = /** @class */ (function (_super) {
             { 'row': 19, 'col': 5 },
         ];
         _this.name = "S Piece";
-        _this.draw();
         return _this;
     }
     return SPiece;
@@ -345,7 +346,6 @@ var ZPiece = /** @class */ (function (_super) {
             { 'row': 19, 'col': 7 },
         ];
         _this.name = "Z Piece";
-        _this.draw();
         return _this;
     }
     return ZPiece;
@@ -362,7 +362,6 @@ var LPiece = /** @class */ (function (_super) {
             { 'row': 19, 'col': 5 },
         ];
         _this.name = "L Piece";
-        _this.draw();
         return _this;
     }
     return LPiece;
@@ -379,7 +378,6 @@ var JPiece = /** @class */ (function (_super) {
             { 'row': 19, 'col': 7 },
         ];
         _this.name = "J Piece";
-        _this.draw();
         return _this;
     }
     return JPiece;
@@ -396,7 +394,6 @@ var TPiece = /** @class */ (function (_super) {
             { 'row': 19, 'col': 6 },
         ];
         _this.name = "T Piece";
-        _this.draw();
         return _this;
     }
     return TPiece;
@@ -443,7 +440,6 @@ var Game = /** @class */ (function () {
             4: 1200
         };
         this.score += (this.level + 1) * basePoints[linesScored];
-        console.log(this.score);
         var scoreElem = document.getElementById('score');
         if (!(scoreElem instanceof HTMLElement)) {
             throw new Error("Could not find score element");
@@ -461,9 +457,9 @@ var Game = /** @class */ (function () {
         var completedRows = [];
         var isRowComplete = false;
         for (var i = 0; i < rowsToCheck.length; i++) {
-            var row = document.querySelector('.board .row.r' + rowsToCheck[i]);
+            var row = document.querySelector('.mainBoard.board .row.r' + rowsToCheck[i]);
             if (!(row instanceof HTMLElement)) {
-                throw new Error("Couldn't find Row index " + i);
+                throw new Error("Couldn't find Row " + rowsToCheck[i] + " (idx " + i + ")");
             }
             var numFilledCells = Array.from(row.children).filter(function (cell, j) {
                 if (!(cell instanceof HTMLElement)) {
@@ -487,7 +483,7 @@ var Game = /** @class */ (function () {
         // column
         for (var i = 0; i < completedRows.length; i++) {
             var rowHTML = "\n                <div class='row'>\n                    <div class='cell c1'></div>\n                    <div class='cell c2'></div>\n                    <div class='cell c3'></div>\n                    <div class='cell c4'></div>\n                    <div class='cell c5'></div>\n                    <div class='cell c6'></div>\n                    <div class='cell c7'></div>\n                    <div class='cell c8'></div>\n                    <div class='cell c9'></div>\n                    <div class='cell c10'></div>\n                </div>\n            ";
-            var board = document.getElementsByClassName('board')[0];
+            var board = document.querySelector('.mainBoard.board');
             if (!(board instanceof HTMLElement)) {
                 throw new Error("Couldn't find Board");
             }
@@ -502,7 +498,7 @@ var Game = /** @class */ (function () {
         // alert('Inserted rows')
         // Now go back through all the rows and update the r1 to r20 classes.
         var count = 1;
-        var rows = document.querySelectorAll('.board .row');
+        var rows = document.querySelectorAll('.mainBoard.board .row');
         for (var i = rows.length - 1; i >= 0; i--) {
             var row = rows[i];
             if (!(row instanceof HTMLElement)) {
@@ -526,6 +522,22 @@ var Game = /** @class */ (function () {
             }
         }, this.getSpeed());
     };
+    // Erase the preview board
+    Game.previewErase = function () {
+        var previewBoard = document.querySelector('.preview .board');
+        var rows = previewBoard.children;
+        for (var i = 0; i < rows.length; i++) {
+            var row = rows[i];
+            var columns = row.children;
+            for (var j = 0; j < columns.length; j++) {
+                var column = columns[j];
+                if (!(column instanceof HTMLElement)) {
+                    throw new Error("Couldn't find column");
+                }
+                column.style.backgroundColor = '';
+            }
+        }
+    };
     Game.generatePiece = function () {
         // If we don't have a next piece or the next piece is invalid, generate
         // a random index for the current piece. Otherwise, we will use the
@@ -542,39 +554,15 @@ var Game = /** @class */ (function () {
             this.longestLongbarDrought = this.longbarDrought;
         }
         // Determine what the next piece will be
+        this.previewErase();
         this.nextPieceIdx = Math.floor(Math.random() * this.Pieces.length);
-        // TODO: Generate a preview of next piece
-        var msg;
-        switch (this.nextPieceIdx) {
-            case 0:
-                msg = "Long Bar";
-                break;
-            case 1:
-                msg = "Square";
-                break;
-            case 2:
-                msg = "S Piece";
-                break;
-            case 3:
-                msg = "Z Piece";
-                break;
-            case 4:
-                msg = "L Piece";
-                break;
-            case 5:
-                msg = "J Piece";
-                break;
-            case 6:
-                msg = "T Piece";
-                break;
-            default:
-                msg = "UNKNOWN";
-        }
-        document.querySelector('.info .preview span').textContent = msg;
-        document.querySelector('.info .longbar-drought span').textContent = this.longbarDrought.toString();
-        document.querySelector('.info .longest-longbar-drought span').textContent = this.longestLongbarDrought.toString();
+        this.nextPiece = this.Pieces[this.nextPieceIdx]();
+        this.nextPiece.previewDraw();
+        document.querySelector('.info .longbar-drought h1').textContent = this.longbarDrought.toString();
+        document.querySelector('.info .longest-longbar-drought h1').textContent = this.longestLongbarDrought.toString();
         // Create the new piece
         this.activePiece = this.Pieces[idx]();
+        this.activePiece.draw();
     };
     Game.moveLeft = function () {
         if (Game.isPaused) {
@@ -773,7 +761,7 @@ function setupMobileTouchSupport() {
     var maxTime = 1000;
     var elapsedTime;
     var startTime = 0;
-    var board = document.getElementsByClassName('board')[0];
+    var board = document.querySelector('.mainBoard.board');
     if (!(board instanceof HTMLElement)) {
         throw new Error("Couldn't find Board");
     }

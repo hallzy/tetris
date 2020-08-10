@@ -6,12 +6,21 @@ body {
     text-align: center;
 }
 
+
 .board {
+    display: table;
+}
+
+.preview .board {
+    margin: auto;
+    width: 90%;
+    height: 25%;
+}
+
+.mainBoard.board {
     border: 5px solid red;
     width: 44vh;
     height: 88vh;
-    display: table;
-    /* margin: auto; */
 }
 
 .row {
@@ -68,4 +77,13 @@ body {
 
 .hidden {
     display: none;
+}
+
+.info h3, h1 {
+    text-align: center;
+    margin: 0;
+}
+
+.longbar-drought {
+    margin-bottom: 25px;
 }

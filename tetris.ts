@@ -1,26 +1,18 @@
 /// <reference path="./polyfill.ts" />
 
 // TODO:
-//  - See if I can reduce the delay when holding down the arrow keys
-//  - Rotating pieces at the top of the board doesn't work, probably due to
-//    collision detection not letting things go off the top of the screen.
-//  - Show a preview of the next piece
-//  - Some sort of animation for clearing lines so it isn't so abrupt
-//  - Seems to take some time to clear lines... What is causing that delay?
-//  - Change colour of placed pieces to a Gray or something?
-//  - Show statistics:
-//      - Current long bar drought
-//      - Longest long bar drought
-//      - The count of each piece that you have seen
-//  - There seems to be a delay at lower levels to get the next piece generated.
-//    I would like that to be quicker
+// - See if I can reduce the delay when holding down the arrow keys
+// - Some sort of animation for clearing lines so it isn't so abrupt
+// - Change colour of placed pieces to a Gray or something?
+// - Show statistics:
+//   - The count of each piece that you have seen
 // - Add instructions somewhere
-// - Add a way to specify the starting level
 // - Better Mobile swipe/touch support
 //   - Maybe use the touchmove event to have the piece track the users finger
-//   instead of having swipes
-// - Have a way to create unique games that can be replayed with the same
-// sequence of pieces and keep track of scores on that particular game
+//     instead of having swipes
+// - Add a losing condition
+// - Save highscores and show the high scores for a particular game sequence and
+//   start level
 
 type PieceLocations = [
     { 'row' : number, 'col' : number},
@@ -108,22 +100,19 @@ abstract class Piece {
             var element = document.querySelector(selector);
             if (element instanceof HTMLElement) {
                 element.style.backgroundColor = '';
-            } else {
-                return false;
             }
         }
         return true;
     }
 
-    protected draw() : boolean {
+    private drawHelper(selectorPrefix : string) : boolean {
         for (var i in this.cells) {
             var cell = this.cells[i];
 
-            var selector = '.r' + cell.row + ' > .c' + cell.col;
+            var selector = selectorPrefix + ' .r' + cell.row + ' > .c' + cell.col;
             var element = document.querySelector(selector);
             if (!(element instanceof HTMLElement)) {
-                throw new Error("Failed to find cell -- " + selector);
-                return false;
+                continue;
             }
 
             element.style.backgroundColor = this.colour;
@@ -131,18 +120,28 @@ abstract class Piece {
         return true;
     }
 
+    public previewDraw() : boolean {
+        return this.drawHelper('.preview .board');
+    }
+
+    public draw() : boolean {
+        return this.drawHelper('.mainBoard.board');
+    }
+
     // true => Collision Detected
     // false => No Collision Detected
     public collisionDetect(row : number, col : number) : boolean {
         // The row and column have to be within bounds
-        if (row > 20 || row < 1 || col < 1 || col > 10) {
+        if (row < 1 || col < 1 || col > 10) {
             return true;
         }
 
         var selector = '.r' + row + ' > .c' + col;
         var element = document.querySelector(selector);
         if (!(element instanceof HTMLElement)) {
-            throw new Error('Failed to find cell element -- ' + selector);
+            // If board cell doesn't exist, then no collision. This could happen
+            // if you rotate at the top of the board
+            return false;
         }
 
         this.erase();
@@ -229,8 +228,6 @@ class LongBar extends Piece {
         ];
 
         this.name = "Long Bar";
-
-        this.draw();
     }
 
     // Rotate CCW just does the exact same thing that rotate90 does
@@ -313,7 +310,6 @@ class Square extends Piece {
             {'row' : 19, 'col' : 6},
         ];
         this.name = "Square";
-        this.draw();
     }
 
     // Square doesn't rotate
@@ -414,7 +410,6 @@ class SPiece extends SJPieces {
             {'row' : 19, 'col' : 5},
         ];
         this.name = "S Piece";
-        this.draw();
     }
 }
 
@@ -431,7 +426,6 @@ class ZPiece extends SJPieces {
         ];
 
         this.name = "Z Piece";
-        this.draw();
     }
 }
 
@@ -446,7 +440,6 @@ class LPiece extends Piece {
             {'row' : 19, 'col' : 5},
         ];
         this.name = "L Piece";
-        this.draw();
     }
 
 }
@@ -463,7 +456,6 @@ class JPiece extends Piece {
             {'row' : 19, 'col' : 7},
         ];
         this.name = "J Piece";
-        this.draw();
     }
 }
 
@@ -479,7 +471,6 @@ class TPiece extends Piece {
             {'row' : 19, 'col' : 6},
         ];
         this.name = "T Piece";
-        this.draw();
     }
 
 }
@@ -527,6 +518,7 @@ class Game {
     private static startLevel : number;
 
     private static activePiece : Piece;
+    private static nextPiece : Piece;
     private static nextPieceIdx : number = -1;
 
     private static longbarDrought : number  = 0;
@@ -562,7 +554,6 @@ class Game {
         }
 
         this.score += (this.level + 1) * basePoints[linesScored];
-        console.log(this.score);
 
         var scoreElem = document.getElementById('score');
         if (!(scoreElem instanceof HTMLElement)) {
@@ -587,9 +578,9 @@ class Game {
         var isRowComplete = false;
 
         for (var i = 0; i < rowsToCheck.length; i++) {
-            var row = document.querySelector('.board .row.r' + rowsToCheck[i]);
+            var row = document.querySelector('.mainBoard.board .row.r' + rowsToCheck[i]);
             if (!(row instanceof HTMLElement)) {
-                throw new Error("Couldn't find Row index " + i);
+                throw new Error("Couldn't find Row " + rowsToCheck[i] + " (idx " + i  + ")");
             }
             var numFilledCells = Array.from(row.children).filter(function(cell, j) {
                 if (!(cell instanceof HTMLElement)) {
@@ -631,7 +622,7 @@ class Game {
                     <div class='cell c10'></div>
                 </div>
             `
-            var board = document.getElementsByClassName('board')[0];
+            var board = document.querySelector('.mainBoard.board');
             if (!(board instanceof HTMLElement)) {
                 throw new Error("Couldn't find Board");
             }
@@ -649,7 +640,7 @@ class Game {
 
         // Now go back through all the rows and update the r1 to r20 classes.
         var count = 1;
-        var rows = document.querySelectorAll('.board .row');
+        var rows = document.querySelectorAll('.mainBoard.board .row');
         for (var i = rows.length - 1; i >= 0; i--) {
             var row = rows[i];
             if (!(row instanceof HTMLElement)) {
@@ -674,6 +665,26 @@ class Game {
         }, this.getSpeed());
     }
 
+    // Erase the preview board
+    private static previewErase() {
+        var previewBoard = document.querySelector('.preview .board');
+
+        var rows = previewBoard.children;
+
+        for (var i = 0; i < rows.length; i++) {
+            var row = rows[i];
+            var columns = row.children;
+
+            for (var j = 0; j < columns.length; j++) {
+                var column = columns[j];
+                if (!(column instanceof HTMLElement)) {
+                    throw new Error("Couldn't find column");
+                }
+                column.style.backgroundColor = '';
+            }
+        }
+    }
+
     public static generatePiece() {
 
         // If we don't have a next piece or the next piece is invalid, generate
@@ -694,42 +705,17 @@ class Game {
         }
 
         // Determine what the next piece will be
+        this.previewErase();
         this.nextPieceIdx = Math.floor(Math.random() * this.Pieces.length);
+        this.nextPiece = this.Pieces[this.nextPieceIdx]();
+        this.nextPiece.previewDraw();
 
-        // TODO: Generate a preview of next piece
-        var msg : string;
-        switch (this.nextPieceIdx) {
-            case 0:
-                msg = "Long Bar";
-                break;
-            case 1:
-                msg = "Square";
-                break;
-            case 2:
-                msg = "S Piece";
-                break;
-            case 3:
-                msg = "Z Piece";
-                break;
-            case 4:
-                msg = "L Piece";
-                break;
-            case 5:
-                msg = "J Piece";
-                break;
-            case 6:
-                msg = "T Piece";
-                break;
-            default:
-                msg = "UNKNOWN";
-        }
-
-        document.querySelector('.info .preview span').textContent = msg;
-        document.querySelector('.info .longbar-drought span').textContent = this.longbarDrought.toString();
-        document.querySelector('.info .longest-longbar-drought span').textContent = this.longestLongbarDrought.toString();
+        document.querySelector('.info .longbar-drought h1').textContent = this.longbarDrought.toString();
+        document.querySelector('.info .longest-longbar-drought h1').textContent = this.longestLongbarDrought.toString();
 
         // Create the new piece
         this.activePiece = this.Pieces[idx]();
+        this.activePiece.draw();
     }
 
     public static moveLeft() {
@@ -937,7 +923,7 @@ function setupMobileTouchSupport() {
     var elapsedTime;
     var startTime = 0;
 
-    var board = document.getElementsByClassName('board')[0];
+    var board = document.querySelector('.mainBoard.board');
     if (!(board instanceof HTMLElement)) {
         throw new Error("Couldn't find Board");
     }
