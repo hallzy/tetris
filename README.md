@@ -158,7 +158,10 @@ a learning opportunity.
 I have a list of features I want to add still, and bugs that I have noticed
 which I need to address, or just other issues.
 
-- See if I can reduce the delay when holding down the arrow keys
+- See if I can reduce the delay when holding down the arrow keys (DAS seems too
+  long)
+- The original Tetris Delayed dropping the first piece a bit. Figure out what
+  that delay is and program that into the game
 - Some sort of animation for clearing lines so it isn't so abrupt
 - Change colour of placed pieces to a Gray or something?
 - Show statistics:
@@ -170,3 +173,4 @@ which I need to address, or just other issues.
 - Ability to restart after losing
 - Save highscores and show the high scores for a particular game sequence and
   start level
+- NES Tetris has a B-Mode. Consider adding that as well.

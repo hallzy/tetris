@@ -765,29 +765,48 @@ var Game = /** @class */ (function () {
     return Game;
 }());
 function setupUserKeys() {
-    document.onkeydown = checkKey;
+    document.onkeydown = keyDown;
+    // Keyup event is used to help determine if the key is being held down. The
+    // only keys I really care about for this are the left and right arrows, and
+    // the down arrow
+    document.onkeyup = keyUp;
     setupMobileTouchSupport();
-    function checkKey(e) {
+    // Keep track of what keys are current down
+    // This maps the keycode to true so it is easy to lookup
+    var pressedKey = null;
+    var dasTimeout;
+    var arrInterval;
+    // NES Tetris has a DAS delay of 16 frames and an ARR delay of 6 frames. At
+    // 60 FPS, that is 267ms and 100ms respectively
+    function startDAS(func, dasTime, arrTime) {
+        if (dasTime === void 0) { dasTime = 267; }
+        if (arrTime === void 0) { arrTime = 100; }
+        // Move immediately after pressing the button
+        func();
+        // Wait the DAS delay before moving again
+        dasTimeout = setTimeout(function () {
+            func();
+            // Once DAS is up, move at the ARR speed after that until released
+            arrInterval = setInterval(func, arrTime);
+        }, dasTime);
+    }
+    function keyUp(e) {
+        // If the released key is not saved as the pressed key, then ignore
+        if (e.keyCode !== pressedKey) {
+            return;
+        }
+        // Reset the pressed key
+        pressedKey = null;
+        // Clear the timers so that they keys aren't pressed again
+        clearTimeout(dasTimeout);
+        clearInterval(arrInterval);
+    }
+    function keyDown(e) {
         e = e || window.event;
+        // Enter Key
         if (e.keyCode == '13') {
             Game.togglePause();
             return;
-            // down arrow
-        }
-        else if (e.keyCode == '40') {
-            Game.moveDown();
-            // left arrow
-        }
-        else if (e.keyCode == '37') {
-            Game.moveLeft();
-            // right arrow
-        }
-        else if (e.keyCode == '39') {
-            Game.moveRight();
-            // Enter Key
-        }
-        else if (e.keyCode == '13') {
-            Game.togglePause();
             // Z key
         }
         else if (e.keyCode == '90') {
@@ -800,6 +819,26 @@ function setupUserKeys() {
         }
         else if (e.keyCode == '32') {
             Game.drop();
+            // These keys will not have any effect in the default manner if they are
+            // held down. So if the key is still down, ignore it
+        }
+        else if (pressedKey === null) {
+            // Mark this key as being down now
+            pressedKey = e.keyCode;
+            // down arrow
+            if (e.keyCode == '40') {
+                // Moving down the piece has no DAS and moves quite fast, so
+                // just make it faster and consistent
+                startDAS(function () { Game.moveDown(); }, 50, 50);
+                // left arrow
+            }
+            else if (e.keyCode == '37') {
+                startDAS(function () { Game.moveLeft(); });
+                // right arrow
+            }
+            else if (e.keyCode == '39') {
+                startDAS(function () { Game.moveRight(); });
+            }
         }
     }
 }
@@ -817,13 +856,15 @@ function setupMobileTouchSupport() {
     var maxTime = 1000;
     var elapsedTime;
     var startTime = 0;
-    var board = document.querySelector('.mainBoard.board');
+    var cancelTouchEnd = false;
+    var board = document.querySelector('.mainArea');
     if (!(board instanceof HTMLElement)) {
         throw new Error("Couldn't find Board");
     }
     board.addEventListener('touchstart', function (e) {
         // Get the touched object
         var touchobj = e.changedTouches[0];
+        cancelTouchEnd = false;
         // Distance is set to 0
         xDist = 0;
         yDist = 0;
@@ -837,8 +878,26 @@ function setupMobileTouchSupport() {
     board.addEventListener('touchmove', function (e) {
         // prevent scrolling when inside DIV
         e.preventDefault();
+        // Get the touched object
+        var touchobj = e.changedTouches[0];
+        // get total dist travelled by finger while in contact with surface
+        xDist = touchobj.pageX - startX;
+        yDist = touchobj.pageY - startY;
+        if (Math.abs(xDist) < distanceThreshold && Math.abs(yDist) < distanceThreshold) {
+            return;
+        }
+        else if (Math.abs(xDist) > Math.abs(yDist)) {
+            startX = touchobj.pageX;
+            startY = touchobj.pageY;
+            cancelTouchEnd = true;
+            xDist < 0 ? Game.moveLeft() : Game.moveRight();
+        }
     }, false);
     board.addEventListener('touchend', function (e) {
+        e.preventDefault();
+        if (cancelTouchEnd) {
+            return;
+        }
         // Get the touched object
         var touchobj = e.changedTouches[0];
         // get total dist travelled by finger while in contact with surface
@@ -865,7 +924,6 @@ function setupMobileTouchSupport() {
         else {
             yDist < 0 ? Game.togglePause() : Game.drop();
         }
-        e.preventDefault();
     }, false);
 }
 function htmlToElement(html) {
@@ -913,7 +971,7 @@ window.onload = function () {
     var seed = GET_ARGS.seed;
     if (seed === '') {
         // If no seed, then generate one
-        seed = (Math.random() * 10000000000000000).toString();
+        seed = (Math.random() * 100000000000000000).toString();
     }
     // XXX: Ignore the typescript error for this. The seedrandom.min.js adds
     // this and I can't get the TS type definitions to work.
