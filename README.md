@@ -158,19 +158,13 @@ a learning opportunity.
 I have a list of features I want to add still, and bugs that I have noticed
 which I need to address, or just other issues.
 
-- See if I can reduce the delay when holding down the arrow keys (DAS seems too
-  long)
-- The original Tetris Delayed dropping the first piece a bit. Figure out what
-  that delay is and program that into the game
 - Some sort of animation for clearing lines so it isn't so abrupt
 - Change colour of placed pieces to a Gray or something?
 - Show statistics:
   - The count of each piece that you have seen
 - Add instructions somewhere
-- Better Mobile swipe/touch support
-  - Maybe use the touchmove event to have the piece track the users finger
-    instead of having swipes
 - Ability to restart after losing
 - Save highscores and show the high scores for a particular game sequence and
   start level
-- NES Tetris has a B-Mode. Consider adding that as well.
+- The game doesn't render on old mobile devices. Fix the JS and CSS to be
+  compatible with older versions of mobile devices.
