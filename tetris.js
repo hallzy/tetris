@@ -583,8 +583,7 @@ var Game = /** @class */ (function () {
         var rowsToCheck = this.activePiece.getCells().map(function (el) { return (el.row); }).unique();
         var completedRowsCount = 0;
         var isRowComplete = false;
-        // Check each row that the last piece affected
-        for (var i = 0; i < rowsToCheck.length; i++) {
+        var _loop_1 = function (i) {
             // Find the row on the board
             var row = document.querySelector('.mainBoard.board .row.r' + rowsToCheck[i]);
             if (!(row instanceof HTMLElement)) {
@@ -608,6 +607,10 @@ var Game = /** @class */ (function () {
                 // the top. This is the easiest way to remove rows
                 row.remove();
             }
+        };
+        // Check each row that the last piece affected
+        for (var i = 0; i < rowsToCheck.length; i++) {
+            _loop_1(i);
         }
         // If we completed a row, then we need to updated the score, the number
         // of lines cleared, and possibly the level that the user is on
@@ -633,19 +636,17 @@ var Game = /** @class */ (function () {
             // statement
             // Insert the above row HTML into the board before the first row
             // (ie, add this new row to the very top of the board)
-            var newRow = board.insertBefore(htmlToElement(rowHTML), board.children[0]);
+            board.insertBefore(htmlToElement(rowHTML), board.children[0]);
         }
         // Now go back through all the rows and update the r1 to r20 classes.
-        var count = 1;
         var rows = document.querySelectorAll('.mainBoard.board .row');
-        for (var i = rows.length - 1; i >= 0; i--) {
+        for (var i = rows.length - 1, count = 1; i >= 0; i--, count++) {
             var row = rows[i];
             if (!(row instanceof HTMLElement)) {
                 throw new Error("Couldn't find Row index " + i);
             }
             // Add the rx class to the row
             row.classList.add('r' + count);
-            count++;
         }
     };
     // Advance the game
@@ -1000,21 +1001,10 @@ var Game = /** @class */ (function () {
 }());
 // }}}
 // Function to setup the user's keys// {{{
-function setupUserKeys() {
-    document.onkeydown = keyDown;
-    // Keyup event is used to help determine if the key is being held down. The
-    // only keys I really care about for this are the left and right arrows, and
-    // the down arrow
-    document.onkeyup = keyUp;
-    setupMobileTouchSupport();
-    // Keep track of what keys are current down
-    // This maps the keycode to true so it is easy to lookup
-    var pressedKey = null;
-    var dasTimeout;
-    var arrInterval;
+var setupUserKeys = function () {
     // NES Tetris has a DAS delay of 16 frames and an ARR delay of 6 frames. At
     // 60 FPS, that is 267ms and 100ms respectively
-    function startDAS(func, dasTime, arrTime) {
+    var startDAS = function (func, dasTime, arrTime) {
         if (dasTime === void 0) { dasTime = 267; }
         if (arrTime === void 0) { arrTime = 100; }
         // Move immediately after pressing the button
@@ -1025,8 +1015,8 @@ function setupUserKeys() {
             // Once DAS is up, move at the ARR speed after that until released
             arrInterval = window.setInterval(func, arrTime);
         }, dasTime);
-    }
-    function keyUp(e) {
+    };
+    var keyUp = function (e) {
         // If the released key is not saved as the pressed key, then ignore
         if (e.getKeyCode() !== pressedKey) {
             return;
@@ -1036,9 +1026,9 @@ function setupUserKeys() {
         // Clear the timers so that they keys aren't pressed again
         clearTimeout(dasTimeout);
         clearInterval(arrInterval);
-    }
+    };
     // Function to handle keypresses
-    function keyDown(e) {
+    var keyDown = function (e) {
         e = e || window.event;
         var keyCode = e.getKeyCode();
         if (keyCode === 'ENTER') {
@@ -1079,11 +1069,22 @@ function setupUserKeys() {
         else if (keyCode === 'RIGHT') {
             startDAS(function () { Game.moveRight(); });
         }
-    }
-}
+    };
+    document.onkeydown = keyDown;
+    // Keyup event is used to help determine if the key is being held down. The
+    // only keys I really care about for this are the left and right arrows, and
+    // the down arrow
+    document.onkeyup = keyUp;
+    setupMobileTouchSupport();
+    // Keep track of what keys are current down
+    // This maps the keycode to true so it is easy to lookup
+    var pressedKey = null;
+    var dasTimeout;
+    var arrInterval;
+};
 // }}}
 // Function to setup mobile touch support// {{{
-function setupMobileTouchSupport() {
+var setupMobileTouchSupport = function () {
     // The starting location in the X and Y planes of a touch
     var startX;
     var startY;
@@ -1166,10 +1167,10 @@ function setupMobileTouchSupport() {
             yDist < 0 ? Game.togglePause() : Game.drop();
         }
     }, false);
-}
+};
 // }}}
 // Function to convert an HTML string to a ChildNode type// {{{
-function htmlToElement(html) {
+var htmlToElement = function (html) {
     // Create a template element
     var template = document.createElement('template');
     // Trim the HTML just in case
@@ -1178,7 +1179,7 @@ function htmlToElement(html) {
     template.innerHTML = html;
     // Return the first child of the template
     return template.content.firstChild;
-}
+};
 // }}}
 window.onload = function () {
     // alert('HELLO 1');

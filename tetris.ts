@@ -116,7 +116,7 @@ interface Event {
 // Get the keycode that is pressed, and return the index of the correct enum
 Event.prototype.getKeyCode = function() : string {
     // If the new .key is available use that
-    var key : string = null;
+    let key : string = null;
     if (this.key !== undefined) {
         key = this.key;
     } else if (this.keyCode !== undefined) {
@@ -169,22 +169,22 @@ abstract class Piece {
     // Rotate the piece.
     // The row factors are to do the rotation in the correct direction.
     private rotate(rowFactor : number, colFactor : number) : boolean {
-        var cells = this.getCells();
+        const cells = this.getCells();
 
         // First get the origin of rotation
-        var origin = cells[1];
+        const origin = cells[1];
 
-        for (var i = 0; i < cells.length; i++) {
-            var cell = cells[i];
+        for (let i = 0; i < cells.length; i++) {
+            const cell = cells[i];
 
             // Find how far this cell is from the origin
-            var xdiff = cell.col - origin.col;
-            var ydiff = cell.row - origin.row;
+            const xdiff = cell.col - origin.col;
+            const ydiff = cell.row - origin.row;
 
             // Part of rotation is to swap the x and y coordinates so do that.
             // The column also needs to be negated to complete the rotation
-            var newRow = rowFactor * xdiff;
-            var newCol = colFactor * ydiff;
+            let newRow = rowFactor * xdiff;
+            let newCol = colFactor * ydiff;
 
             newRow += origin.row;
             newCol += origin.col;
@@ -213,12 +213,12 @@ abstract class Piece {
     }
 
     protected erase() : boolean {
-        var cells = this.getCells();
-        for (var i = 0; i < cells.length; i++) {
-            var cell = cells[i];
+        const cells = this.getCells();
+        for (let i = 0; i < cells.length; i++) {
+            const cell = cells[i];
 
-            var selector = '.r' + cell.row + ' > .c' + cell.col;
-            var element = document.querySelector(selector);
+            const selector = '.r' + cell.row + ' > .c' + cell.col;
+            const element = document.querySelector(selector);
             if (element instanceof HTMLElement) {
                 element.style.backgroundColor = '';
             }
@@ -227,12 +227,12 @@ abstract class Piece {
     }
 
     private drawHelper(selectorPrefix : string) : boolean {
-        var cells = this.getCells();
-        for (var i = 0; i < cells.length; i++) {
-            var cell = cells[i];
+        const cells = this.getCells();
+        for (let i = 0; i < cells.length; i++) {
+            const cell = cells[i];
 
-            var selector = selectorPrefix + ' .r' + cell.row + ' > .c' + cell.col;
-            var element = document.querySelector(selector);
+            const selector = selectorPrefix + ' .r' + cell.row + ' > .c' + cell.col;
+            const element = document.querySelector(selector);
             if (!(element instanceof HTMLElement)) {
                 continue;
             }
@@ -258,8 +258,8 @@ abstract class Piece {
             return true;
         }
 
-        var selector = '.r' + row + ' > .c' + col;
-        var element = document.querySelector(selector);
+        const selector = '.r' + row + ' > .c' + col;
+        const element = document.querySelector(selector);
         if (!(element instanceof HTMLElement)) {
             // If board cell doesn't exist, then no collision. This could happen
             // if you rotate at the top of the board
@@ -267,7 +267,7 @@ abstract class Piece {
         }
 
         this.erase();
-        var colour = element.style.backgroundColor;
+        const colour = element.style.backgroundColor;
         this.draw();
 
         // Square is not empty, so it is occupied.
@@ -279,10 +279,10 @@ abstract class Piece {
     }
 
     public moveLeft() : boolean {
-        var cells = this.getCells();
+        const cells = this.getCells();
         // Make sure we have room to move left
-        for (var i = 0; i < cells.length; i++) {
-            var cell = cells[i];
+        for (let i = 0; i < cells.length; i++) {
+            const cell = cells[i];
             if (this.collisionDetect(cell.row, cell.col - 1)) {
                 return false;
             }
@@ -295,10 +295,10 @@ abstract class Piece {
     }
 
     public moveRight() : boolean {
-        var cells = this.getCells();
+        const cells = this.getCells();
         // Make sure we have room to move right
-        for (var i = 0; i < cells.length; i++) {
-            var cell = cells[i];
+        for (let i = 0; i < cells.length; i++) {
+            const cell = cells[i];
             if (this.collisionDetect(cell.row, cell.col + 1)) {
                 return false;
             }
@@ -311,10 +311,10 @@ abstract class Piece {
     }
 
     public moveDown() : boolean {
-        var cells = this.getCells();
+        const cells = this.getCells();
         // Make sure we have room to move down
-        for (var i = 0; i < cells.length; i++) {
-            var cell = cells[i];
+        for (let i = 0; i < cells.length; i++) {
+            const cell = cells[i];
             if (this.collisionDetect(cell.row - 1, cell.col)) {
                 return false;
             }
@@ -350,7 +350,7 @@ class LongBar extends Piece {
     }
 
     public rotate90() : boolean {
-        var cells = this.getCells();
+        const cells = this.getCells();
 
         // The axis of rotation here is really weird... It rotates about the
         // 3rd square Xs if rotated clockwise:
@@ -367,18 +367,18 @@ class LongBar extends Piece {
         // make this work...
 
         // First get the origin of rotation
-        var origin = cells[2];
+        const origin = cells[2];
 
-        for (var i = 0; i < cells.length; i++) {
-            var cell = cells[i];
+        for (let i = 0; i < cells.length; i++) {
+            const cell = cells[i];
 
             // Find how far this cell is from the origin
-            var xdiff = cell.col - origin.col;
-            var ydiff = cell.row - origin.row;
+            const xdiff = cell.col - origin.col;
+            const ydiff = cell.row - origin.row;
 
             // Part of rotation is to swap the x and y coordinates so do that.
-            var newRow = xdiff;
-            var newCol = ydiff;
+            let newRow = xdiff;
+            let newCol = ydiff;
 
             // The other part of rotation is to negate one of the coordinate
             // values. Which one we do depends on what way we rotate, and
@@ -452,7 +452,7 @@ abstract class SJPieces extends Piece {
     }
 
     public rotate90() : boolean {
-        var cells = this.getCells();
+        const cells = this.getCells();
         // The axis of rotation here is really weird... It rotates about the
         // block marked by Xs if rotated counter clockwise:
         //
@@ -470,18 +470,18 @@ abstract class SJPieces extends Piece {
         // make this work...
 
         // First get the origin of rotation
-        var origin = cells[1];
+        const origin = cells[1];
 
-        for (var i = 0; i < cells.length; i++) {
-            var cell = cells[i];
+        for (let i = 0; i < cells.length; i++) {
+            const cell = cells[i];
 
             // Find how far this cell is from the origin
-            var xdiff = cell.col - origin.col;
-            var ydiff = cell.row - origin.row;
+            const xdiff = cell.col - origin.col;
+            const ydiff = cell.row - origin.row;
 
             // Part of rotation is to swap the x and y coordinates so do that.
-            var newRow = xdiff;
-            var newCol = ydiff;
+            let newRow = xdiff;
+            let newCol = ydiff;
 
             // The other part of rotation is to negate one of the coordinate
             // values. Which one we do depends on what way we rotate, and
@@ -742,7 +742,7 @@ class Game {
 
         // These are the base points for lines clears depending on how many
         // lines were cleared
-        var basePoints = [
+        const basePoints = [
             40,    // Clearing 1 line gets you 40 points * the level multiplier
             100,   // etc
             300,
@@ -757,7 +757,7 @@ class Game {
     // Update the score element on the page for the user to see
     private static updateScoreElem() {
         // Find the score element on the page
-        var scoreElem = document.getElementById('score');
+        const scoreElem = document.getElementById('score');
         if (!(scoreElem instanceof HTMLElement)) {
             throw new Error("Could not find score element");
         }
@@ -775,16 +775,16 @@ class Game {
         // Get the cells for the active piece.
         // Take that and create an array of just the row numbers
         // Then only keep unique rows so I don't have duplicates
-        var rowsToCheck = this.activePiece.getCells().map(el => (el.row)).unique();
+        const rowsToCheck = this.activePiece.getCells().map(el => (el.row)).unique();
 
-        var completedRowsCount : number = 0;
+        let completedRowsCount : number = 0;
 
-        var isRowComplete = false;
+        let isRowComplete = false;
 
         // Check each row that the last piece affected
-        for (var i = 0; i < rowsToCheck.length; i++) {
+        for (let i = 0; i < rowsToCheck.length; i++) {
             // Find the row on the board
-            var row = document.querySelector('.mainBoard.board .row.r' + rowsToCheck[i]);
+            const row = document.querySelector('.mainBoard.board .row.r' + rowsToCheck[i]);
             if (!(row instanceof HTMLElement)) {
                 throw new Error("Couldn't find Row " + rowsToCheck[i] + " (idx " + i  + ")");
             }
@@ -792,7 +792,7 @@ class Game {
             // Retrieve the number of cells on that row that were filled by
             // getting the row children (which are the squares in that row) and
             // filter that to make sure that none of the squares have no colour.
-            var numFilledCells = Array.from(row.children).filter(function(cell, j) {
+            const numFilledCells = Array.from(row.children).filter((cell, j) => {
                 if (!(cell instanceof HTMLElement)) {
                     throw new Error("Couldn't find column index " + j + " in row idx " + i);
                 }
@@ -823,9 +823,9 @@ class Game {
         // We have now removed all complete lines. Insert the number of
         // removed lines to the top now. And add the c1 to c10 classes to each
         // column
-        for (var i = 0; i < completedRowsCount; i++) {
+        for (let i = 0; i < completedRowsCount; i++) {
             // This is a row, so add this to the top the correct number of times
-            var rowHTML = `
+            const rowHTML = `
                 <div class='row'>
                     <div class='cell c1'></div>
                     <div class='cell c2'></div>
@@ -841,7 +841,7 @@ class Game {
             `;
 
             // Find the board
-            var board = document.querySelector('.mainBoard.board');
+            const board = document.querySelector('.mainBoard.board');
             if (!(board instanceof HTMLElement)) {
                 throw new Error("Couldn't find Board");
             }
@@ -852,28 +852,26 @@ class Game {
             // statement
             // Insert the above row HTML into the board before the first row
             // (ie, add this new row to the very top of the board)
-            var newRow = board.insertBefore(htmlToElement(rowHTML), board.children[0]);
+            board.insertBefore(htmlToElement(rowHTML), board.children[0]);
         }
 
         // Now go back through all the rows and update the r1 to r20 classes.
-        var count = 1;
-        var rows = document.querySelectorAll('.mainBoard.board .row');
-        for (var i = rows.length - 1; i >= 0; i--) {
-            var row = rows[i];
+        const rows = document.querySelectorAll('.mainBoard.board .row');
+        for (let i = rows.length - 1, count = 1; i >= 0; i--, count++) {
+            const row = rows[i];
             if (!(row instanceof HTMLElement)) {
                 throw new Error("Couldn't find Row index " + i);
             }
 
             // Add the rx class to the row
             row.classList.add('r' + count);
-            count++;
         }
     }
 
     // Advance the game
     private static advance(instantAdvance : boolean = false) {
         // a Callback to advance the game
-        var callback = () => {
+        const callback = () => {
             // If the active piece can be moved down, then it is moved down and
             // the game is advanced again
             if (this.activePiece.moveDown()) {
@@ -916,16 +914,16 @@ class Game {
     // Erase the preview of the next piece
     private static previewErase() {
         // Find the rows of the preview board
-        var rows = document.querySelector('.preview .board').children;
+        const rows = document.querySelector('.preview .board').children;
 
         // Loop through all the rows
-        for (var i = 0; i < rows.length; i++) {
+        for (let i = 0; i < rows.length; i++) {
             // get the cells for that row
-            var cells = rows[i].children;
+            const cells = rows[i].children;
 
             // Loop through the cells
-            for (var j = 0; j < cells.length; j++) {
-                var cell = cells[j];
+            for (let j = 0; j < cells.length; j++) {
+                const cell = cells[j];
                 if (!(cell instanceof HTMLElement)) {
                     throw new Error("Couldn't find column");
                 }
@@ -944,13 +942,13 @@ class Game {
     // much...
     private static isGameLost() : boolean {
         // Get the cells for the active piece and loop through them all
-        var cells = this.activePiece.getCells();
-        for (var i = 0; i < cells.length; i++) {
-            var cell = cells[i];
+        const cells = this.activePiece.getCells();
+        for (let i = 0; i < cells.length; i++) {
+            const cell = cells[i];
 
             // Find the cell element
-            var selector = '.r' + cell.row + ' > .c' + cell.col;
-            var element = document.querySelector(selector);
+            const selector = '.r' + cell.row + ' > .c' + cell.col;
+            const element = document.querySelector(selector);
             if (!(element instanceof HTMLElement)) {
                 throw new Error('selector failed [' + selector + ']');
             }
@@ -971,7 +969,7 @@ class Game {
 
         // If we don't have a piece, then generate a new one
         if (Game.activePiece === null) {
-            var idx = Math.floor(Math.random() * this.Pieces.length);
+            const idx = Math.floor(Math.random() * this.Pieces.length);
             this.activePiece = this.Pieces[idx]();
         }
 
@@ -991,7 +989,7 @@ class Game {
         this.previewErase();
 
         // Get the index for the next piece and generate it
-        var nextPieceIdx = Math.floor(Math.random() * this.Pieces.length);
+        const nextPieceIdx = Math.floor(Math.random() * this.Pieces.length);
         this.nextPiece = this.Pieces[nextPieceIdx]();
 
         // Draw the next piece in the preview area
@@ -1064,7 +1062,7 @@ class Game {
         this.gravity.pause();
 
         // While we drop rows we need to add to a counter for scoring points
-        var points = 0;
+        let points = 0;
         while (this.activePiece.moveDown()) {
             // Every row we move down successfully, add a point
             points++;
@@ -1119,13 +1117,13 @@ class Game {
         this.isPaused = !this.isPaused;
 
         // Find the parent element of the game
-        var mainArea = document.getElementsByClassName('mainArea')[0];
+        const mainArea = document.getElementsByClassName('mainArea')[0];
         if (!(mainArea instanceof HTMLElement)) {
             throw new Error("Couldn't find mainArea");
         }
 
         // Find the pause banner
-        var pauseBanner = document.getElementsByClassName('pause_banner')[0];
+        const pauseBanner = document.getElementsByClassName('pause_banner')[0];
         if (!(pauseBanner instanceof HTMLElement)) {
             throw new Error("Couldn't find PauseBanner");
         }
@@ -1149,7 +1147,7 @@ class Game {
     // Also updates the element on the page to tell the user
     public static updateLines(completedLines : number) {
         // Find the element on the page to show the lines
-        var linesElem = document.getElementById('lines');
+        const linesElem = document.getElementById('lines');
         if (!(linesElem instanceof HTMLElement)) {
             throw new Error("Could not find level element");
         }
@@ -1164,7 +1162,7 @@ class Game {
     // Update the level, and level element on the page
     public static updateLevel() {
         // Find the level element
-        var levelElem = document.getElementById('level');
+        const levelElem = document.getElementById('level');
         if (!(levelElem instanceof HTMLElement)) {
             throw new Error("Could not find level element");
         }
@@ -1198,7 +1196,7 @@ class Game {
         // Level 16, 17, and 18 is 3 'frames'
 
         // Starting at frames per grid
-        var speed = 1;
+        let speed = 1;
 
         switch(this.level) {
             case 9:
@@ -1237,7 +1235,7 @@ class Game {
     public static getLineTarget() : number {
         // If this is the starting level, this is apparently the calculation to
         // determine how many lines you need to advance to your second level.
-        var lineTarget = Math.min((this.startLevel * 10 + 10), Math.max(100, (this.startLevel * 10 - 50)));
+        let lineTarget = Math.min((this.startLevel * 10 + 10), Math.max(100, (this.startLevel * 10 - 50)));
 
         // This adds on 10 extra lines for every level past your starting level
         // you are
@@ -1250,26 +1248,10 @@ class Game {
 // }}}
 
 // Function to setup the user's keys// {{{
-function setupUserKeys() {
-    document.onkeydown = keyDown;
-
-    // Keyup event is used to help determine if the key is being held down. The
-    // only keys I really care about for this are the left and right arrows, and
-    // the down arrow
-    document.onkeyup = keyUp;
-
-    setupMobileTouchSupport();
-
-    // Keep track of what keys are current down
-    // This maps the keycode to true so it is easy to lookup
-    var pressedKey : string = null;
-
-    var dasTimeout : number;
-    var arrInterval : number;
-
+const setupUserKeys = () => {
     // NES Tetris has a DAS delay of 16 frames and an ARR delay of 6 frames. At
     // 60 FPS, that is 267ms and 100ms respectively
-    function startDAS(func : Function, dasTime : number = 267, arrTime : number = 100) {
+    const startDAS = (func : Function, dasTime : number = 267, arrTime : number = 100) => {
         // Move immediately after pressing the button
         func();
 
@@ -1282,7 +1264,7 @@ function setupUserKeys() {
         }, dasTime);
     }
 
-    function keyUp(e) {
+    const keyUp = (e) => {
         // If the released key is not saved as the pressed key, then ignore
         if (e.getKeyCode() !== pressedKey) {
             return;
@@ -1297,10 +1279,10 @@ function setupUserKeys() {
     }
 
     // Function to handle keypresses
-    function keyDown(e) {
+    const keyDown = (e) => {
         e = e || window.event;
 
-        var keyCode = e.getKeyCode();
+        const keyCode = e.getKeyCode();
 
         if (keyCode === 'ENTER') {
             Game.togglePause();
@@ -1347,36 +1329,52 @@ function setupUserKeys() {
             startDAS(() => { Game.moveRight(); });
         }
     }
+
+    document.onkeydown = keyDown;
+
+    // Keyup event is used to help determine if the key is being held down. The
+    // only keys I really care about for this are the left and right arrows, and
+    // the down arrow
+    document.onkeyup = keyUp;
+
+    setupMobileTouchSupport();
+
+    // Keep track of what keys are current down
+    // This maps the keycode to true so it is easy to lookup
+    let pressedKey : string = null;
+
+    let dasTimeout : number;
+    let arrInterval : number;
 }
 // }}}
 
 // Function to setup mobile touch support// {{{
-function setupMobileTouchSupport() {
+const setupMobileTouchSupport = () => {
     // The starting location in the X and Y planes of a touch
-    var startX : number;
-    var startY : number;
+    let startX : number;
+    let startY : number;
 
     // The distance the touch gesture has moved
-    var xDist : number;
-    var yDist : number;
+    let xDist : number;
+    let yDist : number;
 
     // required min distance travelled to be considered swipe or touch movement
     const distanceThreshold : number = 50;
 
     // If something happens that causes us to want to skip the touchend event,
     // then set this to true
-    var cancelTouchEnd : boolean = false;
+    let cancelTouchEnd : boolean = false;
 
     // Find the board
-    var board = document.querySelector('.mainArea');
+    const board = document.querySelector('.mainArea');
     if (!(board instanceof HTMLElement)) {
         throw new Error("Couldn't find Board");
     }
 
     // Add the touch start event handler
-    board.addEventListener('touchstart', function(e){
+    board.addEventListener('touchstart', (e) => {
         // Get the touched object
-        var touchobj = e.changedTouches[0]
+        const touchobj = e.changedTouches[0]
 
         // Start with the cancelling of touch end to false
         cancelTouchEnd = false;
@@ -1394,12 +1392,12 @@ function setupMobileTouchSupport() {
     }, false);
 
     // Event handler for moving your finger
-    board.addEventListener('touchmove', function(e){
+    board.addEventListener('touchmove', (e) => {
         // prevent scrolling when inside DIV
         e.preventDefault()
 
         // Get the touched object
-        var touchobj = e.changedTouches[0]
+        const touchobj = e.changedTouches[0]
 
         // get total dist travelled by finger while in contact with surface
         xDist = touchobj.pageX - startX;
@@ -1429,7 +1427,7 @@ function setupMobileTouchSupport() {
     }, false)
 
     // Touch end handler
-    board.addEventListener('touchend', function(e){
+    board.addEventListener('touchend', (e) => {
         e.preventDefault()
 
         // If we specified to cancel the touch end, then do nothing
@@ -1437,7 +1435,7 @@ function setupMobileTouchSupport() {
             return;
         }
         // Get the touched object
-        var touchobj = e.changedTouches[0]
+        const touchobj = e.changedTouches[0]
 
         // get total dist travelled by finger while in contact with surface
         xDist = touchobj.pageX - startX;
@@ -1458,9 +1456,9 @@ function setupMobileTouchSupport() {
 // }}}
 
 // Function to convert an HTML string to a ChildNode type// {{{
-function htmlToElement(html : string) : ChildNode {
+const htmlToElement = (html : string) : ChildNode => {
     // Create a template element
-    var template = document.createElement('template');
+    const template = document.createElement('template');
 
     // Trim the HTML just in case
     html = html.trim();
@@ -1474,21 +1472,21 @@ function htmlToElement(html : string) : ChildNode {
 
 // }}}
 
-window.onload = function() {
+window.onload = () => {
     // alert('HELLO 1');
 
     // Add polyfill functionality
     addPolyFill();
 
     // Initialize our GET options
-    var init : GetOpts = {
+    const init : GetOpts = {
         'lvl' : '-1',
         'seed': '',
     };
 
     // Get arguments from URL. We expect a level and seed for the RNG
-    const GET_ARGS = location.search.substr(1).split('&').reduce(function(acc, val) {
-        var [key, value] = val.split('=');
+    const GET_ARGS = location.search.substr(1).split('&').reduce((acc, val) => {
+        const [key, value] = val.split('=');
 
         // If no value, then ignore
         if (value === undefined) {
@@ -1500,7 +1498,7 @@ window.onload = function() {
     }, init);
 
     // Get the level as an integer
-    var level = parseInt(GET_ARGS.lvl, 10);
+    let level = parseInt(GET_ARGS.lvl, 10);
     if (isNaN(level) || level < 0) {
         // This could happen if someone messes with the URL, or if there just
         // wasn't a level in the URL, so ask the user
@@ -1511,7 +1509,7 @@ window.onload = function() {
     }
 
     // Get the seed from the URL
-    var seed : string = GET_ARGS.seed;
+    let seed : string = GET_ARGS.seed;
     if (seed === '') {
         // If no seed, then generate one
         // substring(2) is just to remove the '0.' from the beginning of the
