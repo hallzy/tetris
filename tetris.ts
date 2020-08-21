@@ -1,8 +1,6 @@
 /// <reference path="./polyfill.ts" />
 
 // TODO:
-// - Some sort of animation for clearing lines so it isn't so abrupt
-// - Change colour of placed pieces to a Gray or something?
 // - Show statistics:
 //   - The count of each piece that you have seen
 // - Add instructions somewhere
@@ -142,7 +140,17 @@ abstract class Piece {
     // The cells that this piece takes up
     private cells  : PieceLocations;
 
+    // Default piece as a preview piece
+    private boardSelector = '.preview .board';
+
     public constructor() { }
+
+    // Set the piece to the active piece
+    public setActive() : Piece {
+        // Set the board selector to the main board
+        this.boardSelector = '.mainBoard.board';
+        return this;
+    }
 
     // Retrieve the colour of the piece
     private getColour() : CellColours {
@@ -212,12 +220,12 @@ abstract class Piece {
         return this.rotate(1, -1);
     }
 
-    protected erase() : boolean {
+    public erase() : boolean {
         const cells = this.getCells();
         for (let i = 0; i < cells.length; i++) {
             const cell = cells[i];
 
-            const selector = '.r' + cell.row + ' > .c' + cell.col;
+            const selector = this.boardSelector + ' .r' + cell.row + ' > .c' + cell.col;
             const element = document.querySelector(selector);
             if (element instanceof HTMLElement) {
                 element.style.backgroundColor = '';
@@ -226,12 +234,12 @@ abstract class Piece {
         return true;
     }
 
-    private drawHelper(selectorPrefix : string) : boolean {
+    public draw() : boolean {
         const cells = this.getCells();
         for (let i = 0; i < cells.length; i++) {
             const cell = cells[i];
 
-            const selector = selectorPrefix + ' .r' + cell.row + ' > .c' + cell.col;
+            const selector = this.boardSelector + ' .r' + cell.row + ' > .c' + cell.col;
             const element = document.querySelector(selector);
             if (!(element instanceof HTMLElement)) {
                 continue;
@@ -240,14 +248,6 @@ abstract class Piece {
             element.style.backgroundColor = this.getColour();
         }
         return true;
-    }
-
-    public previewDraw() : boolean {
-        return this.drawHelper('.preview .board');
-    }
-
-    public draw() : boolean {
-        return this.drawHelper('.mainBoard.board');
     }
 
     // true => Collision Detected
@@ -713,27 +713,32 @@ class Game {
     public static isActive : boolean = true;
 
     // Function to start the game
-    public static start(startLevel : number) {
+    public static start(startLevel : number) : void {
         // Set the starting level
-        this.startLevel = startLevel;
-        this.level = startLevel;
+        Game.startLevel = startLevel;
+        Game.level = startLevel;
 
         // Update the level shown to the user
-        this.updateLevel();
+        Game.updateLevel();
 
         // Generate the starting piece
-        this.generatePiece();
+        Game.generatePiece();
+
+        Game.updateLongBarStats();
+
+        Game.nextPiece.draw();
+        Game.activePiece.draw();
 
         // Advance the game so that the timer to move the piece down starts
-        this.advance();
+        Game.gravity = new Timer(Game.advance, Game.getSpeed());
 
         // Pause the game to start with
-        this.togglePause();
+        Game.togglePause();
     }
 
     // Add points to the Games score variable according to the number of lines
     // cleared
-    private static addPointsForLinesCleared(linesScored : number) {
+    private static addPointsForLinesCleared(linesScored : number) : void {
         // If you cleared less than 1 lines then why is this even being called?
         // If you cleared more than 4 then something has gone terribly wrong
         if (linesScored < 1 || linesScored > 4) {
@@ -751,11 +756,11 @@ class Game {
 
         // The final score added is the base points multiplied by your
         // (level + 1)
-        this.score += (this.level + 1) * basePoints[linesScored - 1];
+        Game.score += (Game.level + 1) * basePoints[linesScored - 1];
     }
 
     // Update the score element on the page for the user to see
-    private static updateScoreElem() {
+    private static updateScoreElem() : void {
         // Find the score element on the page
         const scoreElem = document.getElementById('score');
         if (!(scoreElem instanceof HTMLElement)) {
@@ -763,11 +768,57 @@ class Game {
         }
 
         // Add the score to the element
-        scoreElem.textContent = this.score.toString();
+        scoreElem.textContent = Game.score.toString();
     }
 
-    // Remove any completed lines from the board
-    private static removeCompleteLines() {
+    // Remove completed lines
+    private static removeCompleteLines(rows : HTMLElement[], runAfterAnimation : Function) : void {
+        function deleteRows() {
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i].remove();
+            }
+
+            runAfterAnimation();
+        }
+
+        // The animation will start at the middle and clear the lines from the
+        // middle out and then delete the rows. So, I will actually need to get
+        function animateBg(i1 : number = 4, i2 : number = 5) {
+            if (i1 < 0 || i2 >= 10) {
+                deleteRows();
+                return;
+            }
+
+
+            for (let k = 0; k < rows.length; k++) {
+                const col1 = rows[k].children[i1];
+                const col2 = rows[k].children[i2];
+
+                if (!(col1 instanceof HTMLElement)) {
+                    throw new Error("Failed to clear row. col1 doesn't exist.");
+                }
+
+                if (!(col2 instanceof HTMLElement)) {
+                    throw new Error("Failed to clear row. col2 doesn't exist.");
+                }
+
+                col1.style.backgroundColor = '';
+                col2.style.backgroundColor = '';
+            }
+
+            // The delay when clearing lines is 17 to 20 frames in NES tetris.
+            // at 60 FPS, that is about 333 ms. Since this animation takes 4
+            // iterations make each iteration 80 ms fora total of 80*4=320
+            setTimeout(() => {
+                animateBg(i1 - 1, i2 + 1)
+            }, 80);
+        }
+
+        animateBg();
+    }
+
+    // Handle when a piece hits the bottom
+    private static handlePieceHitsBottom(runAfterLineClearCleanup : Function) : void {
         // The only rows you need to check are the ones affected by the
         // final position of the last placed piece... So I will get those rows
         // here
@@ -775,9 +826,9 @@ class Game {
         // Get the cells for the active piece.
         // Take that and create an array of just the row numbers
         // Then only keep unique rows so I don't have duplicates
-        const rowsToCheck = this.activePiece.getCells().map(el => (el.row)).unique();
+        const rowsToCheck = Game.activePiece.getCells().map(el => (el.row)).unique();
 
-        let completedRowsCount : number = 0;
+        let completedRows: HTMLElement[] = [];
 
         let isRowComplete = false;
 
@@ -804,28 +855,31 @@ class Game {
             // can be removed
             if (numFilledCells === 10) {
                 // That is 1 additional completed row
-                completedRowsCount++;
-
-                // Remove the row from the board. We will add a new one later at
-                // the top. This is the easiest way to remove rows
-                row.remove();
+                completedRows.push(row);
             }
         }
 
         // If we completed a row, then we need to updated the score, the number
         // of lines cleared, and possibly the level that the user is on
-        if (completedRowsCount > 0) {
-            this.addPointsForLinesCleared(completedRowsCount);
-            this.updateLines(completedRowsCount);
-            this.updateLevel();
+        if (completedRows.length <= 0) {
+            runAfterLineClearCleanup();
+            return;
         }
 
-        // We have now removed all complete lines. Insert the number of
-        // removed lines to the top now. And add the c1 to c10 classes to each
-        // column
-        for (let i = 0; i < completedRowsCount; i++) {
-            // This is a row, so add this to the top the correct number of times
-            const rowHTML = `
+        Game.addPointsForLinesCleared(completedRows.length);
+        Game.updateLines(completedRows.length);
+        Game.updateLevel();
+
+        // Have to provide a callback here so that this doesn't execute until I
+        // reach a certain point in this function call. I hate JavaScript for
+        // this.
+        Game.removeCompleteLines(completedRows, () => {
+            // We have now removed all complete lines. Insert the number of
+            // removed lines to the top now. And add the c1 to c10 classes to each
+            // column
+            for (let i = 0; i < completedRows.length; i++) {
+                // This is a row, so add this to the top the correct number of times
+                const rowHTML = `
                 <div class='row'>
                     <div class='cell c1'></div>
                     <div class='cell c2'></div>
@@ -840,98 +894,80 @@ class Game {
                 </div>
             `;
 
-            // Find the board
-            const board = document.querySelector('.mainBoard.board');
-            if (!(board instanceof HTMLElement)) {
-                throw new Error("Couldn't find Board");
+                // Find the board
+                const board = document.querySelector('.mainBoard.board');
+                if (!(board instanceof HTMLElement)) {
+                    throw new Error("Couldn't find Board");
+                }
+
+                // TODO: iOS fails on this line... Whether it is the call to
+                // insertBefore, or something inside htmlToElement, I don't know...
+                // It gets past all the lines in htmlToElement except for the return
+                // statement
+                // Insert the above row HTML into the board before the first row
+                // (ie, add this new row to the very top of the board)
+                board.insertBefore(htmlToElement(rowHTML), board.children[0]);
             }
 
-            // TODO: iOS fails on this line... Whether it is the call to
-            // insertBefore, or something inside htmlToElement, I don't know...
-            // It gets past all the lines in htmlToElement except for the return
-            // statement
-            // Insert the above row HTML into the board before the first row
-            // (ie, add this new row to the very top of the board)
-            board.insertBefore(htmlToElement(rowHTML), board.children[0]);
-        }
+            // Now go back through all the rows and update the r1 to r20 classes.
+            const rows = document.querySelectorAll('.mainBoard.board .row');
+            for (let i = rows.length - 1, count = 1; i >= 0; i--, count++) {
+                const row = rows[i];
+                if (!(row instanceof HTMLElement)) {
+                    throw new Error("Couldn't find Row index " + i);
+                }
 
-        // Now go back through all the rows and update the r1 to r20 classes.
-        const rows = document.querySelectorAll('.mainBoard.board .row');
-        for (let i = rows.length - 1, count = 1; i >= 0; i--, count++) {
-            const row = rows[i];
-            if (!(row instanceof HTMLElement)) {
-                throw new Error("Couldn't find Row index " + i);
+                // Add the rx class to the row
+                row.classList.add('r' + count);
             }
 
-            // Add the rx class to the row
-            row.classList.add('r' + count);
-        }
+            runAfterLineClearCleanup();
+        });
     }
 
     // Advance the game
-    private static advance(instantAdvance : boolean = false) {
-        // a Callback to advance the game
-        const callback = () => {
-            // If the active piece can be moved down, then it is moved down and
-            // the game is advanced again
-            if (this.activePiece.moveDown()) {
-                    this.advance();
-            } else {
-                // If the active piece can't be moved down then we have bottomed
-                // out.
+    private static advance() : void {
+        // If the active piece can be moved down, then it is moved down and
+        // the game is advanced again
+        if (Game.activePiece.moveDown()) {
+            // If the active piece can't be moved down then we have bottomed
+            // out.
+            Game.updateScoreElem();
 
+            // Run the advance after a which is determined by your level
+            Game.gravity = new Timer(Game.advance, Game.getSpeed());
 
-                // Find and remove finished lines
-                this.removeCompleteLines();
-
-                // Try to generate a piece
-                if (this.generatePiece()) {
-                    // If you could, then advance
-                    Game.advance();
-                }
-
-                // If a piece couldn't be generated then assume the game is lost
-                // TODO: I think we should actually do the lost game check here
-                // instead, and draw the pieces here too
-            }
-
-            // Update the score element no matter what happens (moving down can
-            // give you points, but so does clearing lines)
-            this.updateScoreElem();
-        }
-
-        // If instant advance, then run the advance steps instantly instead of
-        // after a delay
-        if (instantAdvance) {
-            callback();
             return;
         }
 
-        // Run the advance after a which is determined by your level
-        this.gravity = new Timer(callback, this.getSpeed());
-    }
+        // Find and remove finished lines
+        // Because there is an asynchronous part in a nested function, I need to
+        // have a callback so that I can actually make this work because JS
+        // doesn't have synchronous sleeps...
+        Game.handlePieceHitsBottom(() => {
+            Game.nextPiece.erase();
 
-    // Erase the preview of the next piece
-    private static previewErase() {
-        // Find the rows of the preview board
-        const rows = document.querySelector('.preview .board').children;
+            // Generate a new piece
+            Game.generatePiece();
 
-        // Loop through all the rows
-        for (let i = 0; i < rows.length; i++) {
-            // get the cells for that row
-            const cells = rows[i].children;
-
-            // Loop through the cells
-            for (let j = 0; j < cells.length; j++) {
-                const cell = cells[j];
-                if (!(cell instanceof HTMLElement)) {
-                    throw new Error("Couldn't find column");
-                }
-
-                // Set the cell to no colour
-                cell.style.backgroundColor = '';
+            // Check if the user has lost the game
+            if (Game.isLost()) {
+                // TODO: Show a message and a way to reset the game
+                alert("You Lost");
+                return;
             }
-        }
+
+            Game.nextPiece.draw();
+            Game.activePiece.draw();
+
+            Game.updateLongBarStats();
+
+            Game.updateScoreElem();
+
+            // Run the advance after a which is determined by your level
+            Game.gravity = new Timer(Game.advance, Game.getSpeed());
+        });
+
     }
 
     // Check if the game has been lost
@@ -940,9 +976,9 @@ class Game {
     // yet
     // TODO: I don't like that for this function to work that it assumes so
     // much...
-    private static isGameLost() : boolean {
+    private static isLost() : boolean {
         // Get the cells for the active piece and loop through them all
-        const cells = this.activePiece.getCells();
+        const cells = Game.activePiece.getCells();
         for (let i = 0; i < cells.length; i++) {
             const cell = cells[i];
 
@@ -963,55 +999,42 @@ class Game {
         return false;
     }
 
-    public static generatePiece() : boolean {
-        // Active piece is the next piece
-        Game.activePiece = Game.nextPiece;
-
-        // If we don't have a piece, then generate a new one
-        if (Game.activePiece === null) {
-            const idx = Math.floor(Math.random() * this.Pieces.length);
-            this.activePiece = this.Pieces[idx]();
-        }
-
+    private static updateLongBarStats() : void {
         // If the new active piece will be a longbar, then reset the drought to
         // 0, otherwise add 1.
-        // TODO: Why is this in this function? It isn't related at all
-        this.longbarDrought = (Game.activePiece instanceof LongBar) ? 0 : this.longbarDrought + 1;
+        Game.longbarDrought = (Game.activePiece instanceof LongBar) ? 0 : Game.longbarDrought + 1;
 
-        // If this drought is longer than the longest drought, then this is the
+        // If Game drought is longer than the longest drought, then this is the
         // new longest drought
-        // TODO: Why is this in this function? It isn't related at all
-        if (this.longbarDrought > this.longestLongbarDrought) {
-            this.longestLongbarDrought = this.longbarDrought;
+        if (Game.longbarDrought > Game.longestLongbarDrought) {
+            Game.longestLongbarDrought = Game.longbarDrought;
         }
-
-        // Erase the next piece preview
-        this.previewErase();
-
-        // Get the index for the next piece and generate it
-        const nextPieceIdx = Math.floor(Math.random() * this.Pieces.length);
-        this.nextPiece = this.Pieces[nextPieceIdx]();
-
-        // Draw the next piece in the preview area
-        this.nextPiece.previewDraw();
 
         // Update the longbar drought info on the screen
-        // TODO: Why is this in this function? It isn't related at all
-        document.querySelector('.info .longbar-drought h1').textContent = this.longbarDrought.toString();
-        document.querySelector('.info .longest-longbar-drought h1').textContent = this.longestLongbarDrought.toString();
+        document.querySelector('.info .longbar-drought h1').textContent = Game.longbarDrought.toString();
+        document.querySelector('.info .longest-longbar-drought h1').textContent = Game.longestLongbarDrought.toString();
+    }
 
-        // Check if the user has lost the game
-        // TODO: Why is this in here? It isn't related to piece generation. Try
-        // and move this
-        if (this.isGameLost()) {
-            // TODO: Show a message and a way to reset the game
-            alert("You Lost");
-            return false;
+    public static generatePiece() {
+        // If we don't have a piece, then generate a new one
+        if (Game.nextPiece === null) {
+            const idx = Math.floor(Math.random() * Game.Pieces.length);
+            Game.activePiece = Game.Pieces[idx]();
+        } else {
+            // If we did have a next piece already, then erase it from the
+            // preview
+            Game.nextPiece.erase();
+
+            // Active piece is the next piece
+            Game.activePiece = Game.nextPiece;
         }
 
-        // Draw the active piece
-        this.activePiece.draw();
-        return true;
+        // The preview piece is now the active piece
+        Game.activePiece.setActive();
+
+        // Get the index for the next piece and generate it
+        const nextPieceIdx = Math.floor(Math.random() * Game.Pieces.length);
+        Game.nextPiece = Game.Pieces[nextPieceIdx]();
     }
 
     // User wants to move the piece left
@@ -1021,7 +1044,7 @@ class Game {
             return;
         }
 
-        this.activePiece.moveLeft();
+        Game.activePiece.moveLeft();
     }
 
     // User wants to move the piece right
@@ -1030,7 +1053,7 @@ class Game {
         if (Game.isPaused || !Game.isActive) {
             return;
         }
-        this.activePiece.moveRight();
+        Game.activePiece.moveRight();
     }
 
     // User wants to move the piece down
@@ -1041,13 +1064,13 @@ class Game {
         }
 
         // Try to move down.
-        if (!this.activePiece.moveDown()) {
+        if (!Game.activePiece.moveDown()) {
             // If couldn't move down then pause gravity because there is no
             // point in having the game try and move the piece as well
-            this.gravity.pause();
+            Game.gravity.pause();
 
             // Advance the game instantly
-            Game.advance(true);
+            Game.advance();
         }
     }
 
@@ -1059,11 +1082,11 @@ class Game {
         }
 
         // Pause gravity because there is no point if we are dropping
-        this.gravity.pause();
+        Game.gravity.pause();
 
         // While we drop rows we need to add to a counter for scoring points
         let points = 0;
-        while (this.activePiece.moveDown()) {
+        while (Game.activePiece.moveDown()) {
             // Every row we move down successfully, add a point
             points++;
         }
@@ -1085,7 +1108,7 @@ class Game {
 
         // True is meant to instantly run the advance instead of waiting for a
         // delay. Dropping should instantly advance to the next piece
-        this.advance(true);
+        Game.advance();
     }
 
     // User wants to rotate CCW
@@ -1094,7 +1117,7 @@ class Game {
         if (Game.isPaused || !Game.isActive) {
             return;
         }
-        this.activePiece.rotate270();
+        Game.activePiece.rotate270();
     }
 
     // User wants to rotate CW
@@ -1103,7 +1126,7 @@ class Game {
         if (Game.isPaused || !Game.isActive) {
             return;
         }
-        this.activePiece.rotate90();
+        Game.activePiece.rotate90();
     }
 
     // User wants to pause the game
@@ -1114,7 +1137,7 @@ class Game {
         }
 
         // Reverse the variable for future calls
-        this.isPaused = !this.isPaused;
+        Game.isPaused = !Game.isPaused;
 
         // Find the parent element of the game
         const mainArea = document.getElementsByClassName('mainArea')[0];
@@ -1129,9 +1152,9 @@ class Game {
         }
 
         // If we are now paused
-        if (this.isPaused) {
+        if (Game.isPaused) {
             // Pause gravity, show the pause banner and lighten the background
-            this.gravity.pause();
+            Game.gravity.pause();
             mainArea.classList.add('paused');
             pauseBanner.classList.remove('hidden');
         } else {
@@ -1139,7 +1162,7 @@ class Game {
             // and resume gravity
             mainArea.classList.remove('paused');
             pauseBanner.classList.add('hidden');
-            this.gravity.resume();
+            Game.gravity.resume();
         }
     }
 
@@ -1153,10 +1176,10 @@ class Game {
         }
 
         // Add the number of completed lines to our lines total
-        this.lines += completedLines;
+        Game.lines += completedLines;
 
         // Update the element on the page
-        linesElem.textContent = this.lines.toString();
+        linesElem.textContent = Game.lines.toString();
     }
 
     // Update the level, and level element on the page
@@ -1169,24 +1192,24 @@ class Game {
 
         // If the lines we have are higher than the line target for the current
         // level, then increase the level
-        if (this.lines >= this.getLineTarget()) {
-            this.level++;
+        if (Game.lines >= Game.getLineTarget()) {
+            Game.level++;
         }
 
         // Set the level element on the page
-        levelElem.textContent = this.level.toString();
+        levelElem.textContent = Game.level.toString();
     }
 
     // Calculate the speed of gravity for the user's current level
     public static getSpeed() : number {
-        if (this.level <= 8) {
+        if (Game.level <= 8) {
             // Per NES Tetris, the speed of level 0 is 48 frames per grid. This
             // calculation converts that to milliseconds given that NES tetris ran
             // at 60 FPS.
 
             // Every level higher than 0 up to level 8 reduces the frames per grid
             // by 5.
-            return Math.floor((48 - (this.level*5)) / 60 * 1000);
+            return Math.floor((48 - (Game.level*5)) / 60 * 1000);
         }
 
         // If level is higher than 8, then the speed is calculated differently
@@ -1198,7 +1221,7 @@ class Game {
         // Starting at frames per grid
         let speed = 1;
 
-        switch(this.level) {
+        switch(Game.level) {
             case 9:
                 speed++;
             case 10:
@@ -1221,7 +1244,7 @@ class Game {
         // been a lot of lines and I couldn't be bothered.
         // If the level is between 19 and 28, then add another to the speed...
         // That will make levels 19 to 28 2 frames
-        if (this.level >= 19 && this.level <= 28) {
+        if (Game.level >= 19 && Game.level <= 28) {
             speed++;
         }
 
@@ -1235,11 +1258,11 @@ class Game {
     public static getLineTarget() : number {
         // If this is the starting level, this is apparently the calculation to
         // determine how many lines you need to advance to your second level.
-        let lineTarget = Math.min((this.startLevel * 10 + 10), Math.max(100, (this.startLevel * 10 - 50)));
+        let lineTarget = Math.min((Game.startLevel * 10 + 10), Math.max(100, (Game.startLevel * 10 - 50)));
 
         // This adds on 10 extra lines for every level past your starting level
         // you are
-        lineTarget += (this.level - this.startLevel) * 10;
+        lineTarget += (Game.level - Game.startLevel) * 10;
 
         return lineTarget;
     }
