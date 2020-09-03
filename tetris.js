@@ -13,8 +13,6 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 // TODO:
-// - Some sort of animation for clearing lines so it isn't so abrupt
-// - Change colour of placed pieces to a Gray or something?
 // - Show statistics:
 //   - The count of each piece that you have seen
 // - Add instructions somewhere
@@ -578,45 +576,45 @@ var Game = /** @class */ (function () {
         scoreElem.textContent = Game.score.toString();
     };
     // Remove completed lines
-    Game.removeCompleteLines = function (rows, func) {
-        // TODO: Animate this so that all the rows disappear at the same time
+    Game.removeCompleteLines = function (rows, runAfterAnimation) {
+        function deleteRows() {
+            for (var i = 0; i < rows.length; i++) {
+                var row = rows[i].remove();
+            }
+            runAfterAnimation();
+        }
         // The animation will start at the middle and clear the lines from the
         // middle out and then delete the rows. So, I will actually need to get
-        // a structure of columns to make that happen...
-        var cells = [];
-        for (var i = 0; i < rows.length; i++) {
-            var row = rows[i];
-            var cols = row.children;
-            cells.push([]);
-            for (var j = 4, k = 5; j >= 0 && k < cols.length; j--, k++) {
-                cells[i].push(cols[j]);
-                cells[i].push(cols[k]);
-            }
-        }
-        function animateBg(i, fuckyou) {
-            if (i >= cells[0].length) {
-                fuckyou();
+        function animateBg(i1, i2) {
+            if (i1 === void 0) { i1 = 4; }
+            if (i2 === void 0) { i2 = 5; }
+            if (i1 < 0 || i2 >= 10) {
+                deleteRows();
                 return;
             }
-            for (var k = 0; k < cells.length; k++) {
-                cells[k][i].style.backgroundColor = '';
-                cells[k][i + 1].style.backgroundColor = '';
+            for (var k = 0; k < rows.length; k++) {
+                var col1 = rows[k].children[i1];
+                var col2 = rows[k].children[i2];
+                if (!(col1 instanceof HTMLElement)) {
+                    throw new Error("Failed to clear row. col1 doesn't exist.");
+                }
+                if (!(col2 instanceof HTMLElement)) {
+                    throw new Error("Failed to clear row. col2 doesn't exist.");
+                }
+                col1.style.backgroundColor = '';
+                col2.style.backgroundColor = '';
             }
             // The delay when clearing lines is 17 to 20 frames in NES tetris.
             // at 60 FPS, that is about 333 ms. Since this animation takes 4
             // iterations make each iteration 80 ms fora total of 80*4=320
-            setTimeout(function () { animateBg(i + 2, fuckyou); }, 80);
+            setTimeout(function () {
+                animateBg(i1 - 1, i2 + 1);
+            }, 80);
         }
-        animateBg(0, function () {
-            for (var i = 0; i < rows.length; i++) {
-                var row = rows[i];
-                row.remove();
-            }
-            func();
-        });
+        animateBg();
     };
     // Handle when a piece hits the bottom
-    Game.handlePieceHitsBottom = function (func) {
+    Game.handlePieceHitsBottom = function (runAfterLineClearCleanup) {
         // The only rows you need to check are the ones affected by the
         // final position of the last placed piece... So I will get those rows
         // here
@@ -655,7 +653,7 @@ var Game = /** @class */ (function () {
         // If we completed a row, then we need to updated the score, the number
         // of lines cleared, and possibly the level that the user is on
         if (completedRows.length <= 0) {
-            func();
+            runAfterLineClearCleanup();
             return;
         }
         Game.addPointsForLinesCleared(completedRows.length);
@@ -694,7 +692,7 @@ var Game = /** @class */ (function () {
                 // Add the rx class to the row
                 row.classList.add('r' + count);
             }
-            func();
+            runAfterLineClearCleanup();
         });
     };
     // Advance the game

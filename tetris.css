@@ -19,7 +19,7 @@ body {
 
 .mainBoard.board {
     border: 5px solid red;
-    width: 44vh;
+    width: 95%;
     height: 88vh;
 }
 
@@ -59,10 +59,13 @@ body {
     margin: auto;
 }
 
+.mainCell {
+    width: 70%;
+}
+
 .info {
-    display: table;
     border: 5px solid red;
-    width: 17vh;
+    width: 100%;
     height: 88vh;
 }
 
